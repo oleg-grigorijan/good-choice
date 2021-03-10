@@ -1,16 +1,20 @@
 -- TODO: Think about reviewer, employee, brand_presenter
 -- TODO: Email verification (tokens)
--- TODO: Authentication info (password_hash?)
+-- TODO: Think about images
+-- TODO: Moderator feedback
+-- TODO?: Subject request
+-- TODO?: Administrator report
+-- TODO?: Email tasks
 
 create table reviewer
 (
     id                uuid primary key,
-    first_name        varchar(128) not null,
-    last_name         varchar(128) not null,
+    first_name        varchar(64) not null,
+    last_name         varchar(64) not null,
     email             varchar(320) not null unique,
-    created_date_time timestamp not null,
+    password          varchar(60) not null,
+    created_timestamp timestamp not null,
     image_id          uuid
-    -- TODO?: country, language
 );
 
 create type employee_role as enum ('HR', 'MODERATOR', 'ADMINISTRATOR');
@@ -18,17 +22,18 @@ create type employee_role as enum ('HR', 'MODERATOR', 'ADMINISTRATOR');
 create table employee
 (
     id                uuid primary key,
-    first_name        varchar(128) not null,
-    last_name         varchar(128) not null,
+    first_name        varchar(64) not null,
+    last_name         varchar(64) not null,
     email             varchar(320) not null unique,
+    password          varchar(60) not null,
     role              employee_role not null,
-    created_date_time timestamp not null
+    created_timestamp timestamp not null
 );
 
 create table brand
 (
     id          uuid primary key,
-    name        varchar(128) not null,
+    name        varchar(64) not null,
     description text not null,
     image_id    uuid
 );
@@ -37,16 +42,19 @@ create table brand_presenter
 (
     id                uuid primary key,
     brand_id          uuid references brand,
+    first_name        varchar(64),
+    last_name         varchar(64),
     email             varchar(320) not null unique,
-    created_date_time timestamp not null
+    password          varchar(60),
+    created_timestamp timestamp not null
 );
 
 create table brand_registration_token
 (
-    id                uuid primary key,
+    token             uuid primary key,
     brand_id          uuid not null references brand,
-    created_date_time timestamp not null,
-    email             varchar(320) not null
+    email             varchar(320) not null,
+    created_timestamp timestamp not null
 );
 
 create table subject
@@ -55,8 +63,8 @@ create table subject
     name        varchar(128) not null,
     description text not null,
     brand_id    uuid not null references brand
+    -- TODO?: images
 );
--- TODO?: images
 
 create table subject_tag
 (
@@ -77,7 +85,8 @@ create table review
     reviewer_id uuid not null references reviewer,
     subject_id  uuid not null references subject, -- TODO?: Subjects created by reviewer
     mark        integer not null,
-    is_accepted bool not null -- TODO?: Should it be placed here? Should it be state: ACCEPTED, DECLINED, MODERATING
+    is_accepted boolean not null,                 -- TODO?: Should it be placed here? Should it be state: ACCEPTED, DECLINED, MODERATING
+    check (mark >= 0 and mark <= 5)
 );
 
 create table review_body
@@ -85,7 +94,7 @@ create table review_body
     id                uuid primary key,
     review_id         uuid not null references review,
     content           text not null,
-    created_date_time timestamp not null
+    created_timestamp timestamp not null
 );
 
 create type review_point_type as enum ('ADVANTAGE', 'DISADVANTAGE');
@@ -119,10 +128,10 @@ create table review_comment
     id                uuid primary key,
     review_id         uuid not null references review,
     reviewer_id       uuid references reviewer,
-    is_brand_response bool not null,
+    is_brand_response boolean not null,
     content           text not null,
     parent_comment_id uuid references review_comment,
-    created_date_time timestamp not null
+    created_timestamp timestamp not null
 );
 
 create table review_comment_vote
@@ -132,18 +141,35 @@ create table review_comment_vote
     type              vote_type not null
 );
 
-create type moderator_report_issuer_type as enum ('GUEST', 'REVIEWER', 'BRAND_OWNER');
+create type report_issuer_type as enum ('GUEST', 'REVIEWER', 'BRAND_OWNER', 'SYSTEM');
 
--- TODO?: One table for all reports
--- TODO: Moderator feedback
-create table moderator_report
+create type report_status as enum ('OPEN', 'IN_PROGRESS', 'CLOSED');
+
+create table moderator_report_reason
 (
-    id                 uuid primary key,
-    review_id          uuid references review,
-    review_comment_id  uuid references review_comment,
-    description        text not null,
-    issuer_reviewer_id uuid references reviewer,
-    issuer_type        moderator_report_issuer_type not null
+    id         uuid primary key,
+    name       varchar(128) not null,
+    definition varchar(256) not null,
+    is_deleted boolean not null
 );
 
--- TODO: Administrator task (subject creation)
+create table moderator_report_to_reason
+(
+    report_id uuid primary key references moderator_report,
+    reason_id uuid primary key references moderator_report_reason
+);
+
+create table moderator_report
+(
+    id                      uuid primary key,
+    review_id               uuid references review,
+    review_comment_id       uuid references review_comment,
+    description             text not null,
+    issuer_reviewer_id      uuid references reviewer,
+    issuer_type             report_issuer_type not null,
+    status                  report_status not null,
+    assignee_moderator_id   uuid references employee,
+    created_timestamp       timestamp not null,
+    last_modified_timestamp timestamp not null,
+    check (num_nonnulls(review_id, review_comment_id) = 1)
+);
