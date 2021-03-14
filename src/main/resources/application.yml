@@ -1,1 +1,11 @@
+spring:
+  application:
+    name: 'good-choice'
 
+  datasource:
+    driver-class-name: 'org.postgresql.Driver'
+    url: 'jdbc:postgresql://localhost:5432/good-choice'
+    username: 'good-choice-user'
+    password: 'good-choice-pass'
+
+  jooq.sql-dialect: postgres
