@@ -68,7 +68,6 @@ jooq {
                 }
 
                 generator.apply {
-                    name = "org.jooq.codegen.KotlinGenerator"
                     database.apply {
                         name = "org.jooq.meta.postgres.PostgresDatabase"
                         inputSchema = "public"
