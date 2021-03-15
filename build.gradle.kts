@@ -17,6 +17,11 @@ group = "com.goodchoice"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
+val dbDriver = "org.postgresql.Driver"
+val dbUrl = System.getenv("JDBC_DATABASE_URL") ?: "jdbc:postgresql://localhost:5432/good-choice"
+val dbUser = System.getenv("JDBC_DATABASE_USERNAME") ?: "good-choice-user"
+val dbPassword = System.getenv("JDBC_DATABASE_PASSWORD") ?: "good-choice-pass"
+
 repositories {
     mavenCentral()
 }
@@ -25,6 +30,7 @@ dependencies {
     jooqGenerator("org.postgresql:postgresql")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -38,10 +44,10 @@ dependencies {
 }
 
 flyway {
-    driver = "org.postgresql.Driver"
-    url = "jdbc:postgresql://localhost:5432/good-choice"
-    user = "good-choice-user"
-    password = "good-choice-pass"
+    driver = dbDriver
+    url = dbUrl
+    user = dbUser
+    password = dbPassword
 }
 
 jooq {
@@ -55,10 +61,10 @@ jooq {
             jooqConfiguration.apply {
                 logging = Logging.WARN
                 jdbc.apply {
-                    driver = "org.postgresql.Driver"
-                    url = "jdbc:postgresql://localhost:5432/good-choice"
-                    user = "good-choice-user"
-                    password = "good-choice-pass"
+                    driver = dbDriver
+                    url = dbUrl
+                    user = dbUser
+                    password = dbPassword
                 }
                 generator.apply {
                     database.apply {
