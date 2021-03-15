@@ -31,6 +31,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.jooq:jooq-kotlin:${dependencyManagement.importedProperties["jooq.version"]}")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -65,7 +66,9 @@ jooq {
                     user = dbUser
                     password = dbPassword
                 }
+
                 generator.apply {
+                    name = "org.jooq.codegen.KotlinGenerator"
                     database.apply {
                         name = "org.jooq.meta.postgres.PostgresDatabase"
                         inputSchema = "public"
@@ -73,8 +76,9 @@ jooq {
                     generate.apply {
                         isDeprecated = false
                         isNonnullAnnotation = true
-                        nullableAnnotationType = "org.jetbrains.annotations.Nullable"
                         nonnullAnnotationType = "org.jetbrains.annotations.NotNull"
+                        isNullableAnnotation = true
+                        nullableAnnotationType = "org.jetbrains.annotations.Nullable"
                     }
 
                     target.apply {
