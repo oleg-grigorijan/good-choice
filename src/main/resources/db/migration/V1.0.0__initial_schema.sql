@@ -10,7 +10,7 @@ create table actor
     id                 uuid primary key,
     first_name         varchar(64) not null,
     last_name          varchar(64) not null,
-    email              varchar(320) not null unique, -- TODO: Email verification on registration, on update
+    email              varchar(320) unique, -- TODO: Email verification on registration, on update
     role               actor_role not null,
     password           varchar(60) not null,
     created_timestamp  timestamp not null,
