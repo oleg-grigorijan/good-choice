@@ -5,6 +5,11 @@
 
 create type actor_role as enum ('REVIEWER', 'HR', 'MODERATOR', 'ADMINISTRATOR', 'BRAND_PRESENTER');
 
+create table image(
+    id uuid primary key,
+    location varchar not null
+);
+
 create table actor
 (
     id                 uuid primary key,
@@ -63,9 +68,16 @@ create table subject
     description   varchar not null,
     brand_id      uuid not null references brand,
     is_shown      boolean not null default true,
+    primary_image uuid not null references subject_image,
     -- TODO?: It will be nice to store more detailed subject summary: count of 5, 4, ..., 0 marks
     reviews_count int not null default 0,  -- TODO: Trigger
     average_mark  float not null default 0 -- TODO: Trigger
+);
+
+create table subject_image(
+    id uuid primary key,
+    image_id uuid not null references image,
+    subject_id uuid not null references subject
 );
 
 create table subject_tag
