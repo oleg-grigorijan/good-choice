@@ -147,7 +147,7 @@ create table review_comment
 (
     id                uuid primary key,
     review_id         uuid not null references review,
-    author_id         uuid references actor,
+    author_id         uuid not null references actor,
     content           varchar not null,
     created_timestamp timestamp not null,
     last_modified_timestamp timestamp not null,
