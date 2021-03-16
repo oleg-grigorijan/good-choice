@@ -74,7 +74,16 @@ create table subject
     average_mark  float not null default 0 -- TODO: Trigger
 );
 
-create table subject_image(
+create table subject_to_mark
+(
+    subject_id uuid references subject,
+    mark integer,
+    count integer,
+    primary key (subject_id, mark)
+);
+
+create table subject_image
+(
     id uuid primary key,
     image_id uuid not null references image,
     subject_id uuid not null references subject
