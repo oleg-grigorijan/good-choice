@@ -171,7 +171,6 @@ create table moderator_report
     id                      uuid primary key,
     review_id               uuid references review,
     review_comment_id       uuid references review_comment,
-    description             varchar not null,
     issuer_id               uuid references actor,
     status                  report_status not null,
     assignee_moderator_id   uuid references actor,
