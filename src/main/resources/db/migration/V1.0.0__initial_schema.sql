@@ -139,6 +139,7 @@ create table review_comment
     content           varchar not null,
     parent_comment_id uuid references review_comment,
     created_timestamp timestamp not null,
+    last_modified_timestamp timestamp not null,
     is_shown          bool not null default true, -- TODO?: Moderation status
     upvotesCount      int not null default 0,     -- TODO: Trigger
     downvotesCount    int not null default 0      -- TODO: Trigger
