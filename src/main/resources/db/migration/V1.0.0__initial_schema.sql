@@ -91,7 +91,7 @@ create table review
     is_shown       boolean not null default true,    -- TODO?: Moderation status: HIDDEN, DECLINED, MODERATING, SHOWN
     upvotesCount   int not null default 0,           -- TODO: Trigger
     downvotesCount int not null default 0,           -- TODO: Trigger
-    constraint review_mark_range_check check (mark >= 0 and mark <= 5)
+    constraint review_mark_range_check check (mark >= 1 and mark <= 5)
 );
 
 create table review_body
@@ -140,7 +140,7 @@ create table review_comment
     parent_comment_id uuid references review_comment,
     created_timestamp timestamp not null,
     last_modified_timestamp timestamp not null,
-    is_shown          bool not null default true, -- TODO?: Moderation status
+    is_shown          boolean not null default true, -- TODO?: Moderation status
     upvotesCount      int not null default 0,     -- TODO: Trigger
     downvotesCount    int not null default 0      -- TODO: Trigger
 );
