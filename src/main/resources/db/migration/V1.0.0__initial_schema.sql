@@ -202,9 +202,15 @@ create table moderator_report_to_review
     primary key (report_id, review_id)
 );
 
-create table moderator_report_to_review_comment
-(
+create table moderator_report_to_review_comment(
     report_id uuid references moderator_report,
     review_comment_id uuid references review_comment,
     primary key (report_id, review_comment_id)
+);
+
+create table deleted_by_moderator(
+    id  uuid primary key,
+    reason_id uuid references moderator_report_reason,
+    report_id uuid references moderator_report,
+    note varchar
 );
