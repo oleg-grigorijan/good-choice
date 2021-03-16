@@ -44,7 +44,7 @@ create table brand
 create table brand_presenter_details
 (
     actor_id uuid primary key references actor,
-    brand_id uuid references brand
+    brand_id uuid not null references brand
 );
 
 create table brand_invitation_token
