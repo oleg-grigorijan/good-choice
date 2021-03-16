@@ -71,7 +71,7 @@ create table subject
 create table subject_tag
 (
     id   uuid primary key,
-    name varchar(128)
+    name varchar(128) not null
 );
 
 create table subject_to_tag
