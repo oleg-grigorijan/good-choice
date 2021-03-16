@@ -165,13 +165,6 @@ create table moderator_report_reason
     is_shown   boolean not null
 );
 
-create table moderator_report_to_reason
-(
-    report_id uuid references moderator_report,
-    reason_id uuid references moderator_report_reason,
-    primary key (report_id, reason_id)
-);
-
 create table moderator_report
 (
     id                      uuid primary key,
@@ -184,4 +177,25 @@ create table moderator_report
     created_timestamp       timestamp not null,
     last_modified_timestamp timestamp not null,
     constraint moderator_report_single_target_check check (num_nonnulls(review_id, review_comment_id) = 1)
+);
+
+create table moderator_report_to_reason
+(
+    report_id uuid references moderator_report,
+    reason_id uuid references moderator_report_reason,
+    primary key (report_id, reason_id)
+);
+
+create table moderator_report_to_review
+(
+    report_id uuid references moderator_report,
+    review_id uuid references review,
+    primary key (report_id, review_id)
+);
+
+create table moderator_report_to_review_comment
+(
+    report_id uuid references moderator_report,
+    review_comment_id uuid references review_comment,
+    primary key (report_id, review_comment_id)
 );
