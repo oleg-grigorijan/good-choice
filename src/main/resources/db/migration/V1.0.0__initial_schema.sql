@@ -181,14 +181,11 @@ create table moderator_report_reason
 create table moderator_report
 (
     id                      uuid primary key,
-    review_id               uuid references review,
-    review_comment_id       uuid references review_comment,
     issuer_id               uuid references actor,
     status                  report_status not null,
     assignee_moderator_id   uuid references actor,
     created_timestamp       timestamp not null,
-    last_modified_timestamp timestamp not null,
-    constraint moderator_report_single_target_check check (num_nonnulls(review_id, review_comment_id) = 1)
+    last_modified_timestamp timestamp not null
 );
 
 create table moderator_report_to_reason
