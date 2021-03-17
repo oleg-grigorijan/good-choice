@@ -44,6 +44,7 @@ create table brand
     name        varchar(64) not null,
     description text not null,
     logo_id     uuid references image
+    --TODO?: subjects_count integer not null           -- TODO: Trigger
 );
 
 create table brand_presenter_details
@@ -94,7 +95,7 @@ create table subject_tag
 (
     id   uuid primary key,
     name varchar(128) not null,
-    subject_count integer not null           -- TODO: Trigger
+    subjects_count integer not null           -- TODO: Trigger
 );
 
 create table subject_to_tag
