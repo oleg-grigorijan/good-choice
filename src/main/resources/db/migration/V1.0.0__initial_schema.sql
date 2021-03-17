@@ -287,3 +287,55 @@ create trigger after_delete_review_trigger after delete on review
 create trigger after_update_review_trigger after update on review
     for each row execute procedure after_update_review_trigger();
 
+
+
+
+create function change_review_upvotes_count (updated_review_id uuid, upvotes_delta_count int) returns void
+as $$
+    begin
+        update review
+        set upvotes_count = upvotes_count + upvotes_delta_count
+            where id = updated_review_id;
+    end;
+$$ language plpgsql;
+
+
+create function change_review_downvotes_count (updated_review_id uuid, downvotes_delta_count int) returns void
+as $$
+begin
+    update review
+    set downvotes_count = downvotes_count + downvotes_delta_count
+        where id = updated_review_id;
+end;
+$$ language plpgsql;
+
+create or replace function after_insert_review_vote_trigger() returns trigger
+as $after_insert_review_vote_trigger$
+begin
+    if new.type = 'UP' then
+        perform change_review_upvotes_count(new.review_id, 1);
+    else
+        perform change_review_downvotes_count(new.review_id, 1);
+    end if;
+    return new;
+end;
+$after_insert_review_vote_trigger$ language plpgsql;
+
+create or replace function after_delete_review_vote_trigger() returns trigger
+as $after_delete_review_vote_trigger$
+begin
+    if old.type = 'UP' then
+        perform change_review_upvotes_count(old.review_id, -1);
+    else
+        perform change_review_downvotes_count(old.review_id, -1);
+    end if;
+    return old;
+end;
+$after_delete_review_vote_trigger$ language plpgsql;
+
+create trigger after_insert_review_vote_trigger after insert on review_vote
+    for each row execute procedure after_insert_review_vote_trigger();
+
+create trigger after_delete_review_vote_trigger after delete on review_vote
+    for each row execute procedure after_delete_review_vote_trigger();
+
