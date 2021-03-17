@@ -43,7 +43,7 @@ create table brand
     id          uuid primary key,
     name        varchar(64) not null,
     description text not null,
-    logo_id     uuid references image -- TODO: Images question
+    logo_id     uuid references image
 );
 
 create table brand_presenter_details
@@ -68,9 +68,10 @@ create table subject
     description   varchar not null,
     brand_id      uuid not null references brand,
     is_shown      boolean not null,
-    -- TODO: primary_image_id uuid not null references subject_image,
-    reviews_count integer not null,  -- TODO: Trigger
-    average_mark  float not null -- TODO: Trigger
+    --TODO: primary_image_id uuid references subject_image,
+    reviews_count integer not null,
+    average_mark  float
+--  TODO:   constraint average_mark_check check ((average_mark IS NULL) = (reviews_count = 0))
 );
 
 create table subject_image
@@ -79,6 +80,7 @@ create table subject_image
     image_id uuid not null references image,
     subject_id uuid not null references subject
 );
+
 
 create table subject_to_mark
 (
@@ -110,8 +112,8 @@ create table review
     subject_id     uuid not null references subject, -- TODO?: Subjects created by reviewer
     mark           integer not null,
     is_shown       boolean not null,
-    upvotes_count   integer not null,           -- TODO: Trigger
-    downvotes_count integer not null,           -- TODO: Trigger
+    upvotes_count   integer not null,
+    downvotes_count integer not null,
     constraint review_mark_range_check check (mark >= 1 and mark <= 5)
 );
 
@@ -134,7 +136,6 @@ create table review_point
     primary key (review_id, ordering)
 );
 
--- TODO: Images question
 create table review_image
 (
     id        uuid primary key,
@@ -159,10 +160,10 @@ create table review_comment
     author_id         uuid not null references actor,
     content           varchar not null,
     created_timestamp timestamp not null,
-    last_modified_timestamp timestamp not null,
-    is_shown          boolean not null, -- TODO?: Moderation status
-    upvotesCount      integer not null,     -- TODO: Trigger
-    downvotesCount    integer not null default 0      -- TODO: Trigger
+    --TODO: last_modified_timestamp timestamp,
+    is_shown          boolean not null,
+    upvotes_count      integer not null,
+    downvotes_count    integer not null
 );
 
 create table review_comment_vote
@@ -234,7 +235,7 @@ create table email_task
 );
 
 
-create function change_subject_reviews_count(updated_subject_id uuid, reviews_delta_count int) returns void
+create or replace function change_subject_reviews_count(updated_subject_id uuid, reviews_delta_count int) returns void
 as $$
     begin
         update subject
@@ -243,7 +244,7 @@ as $$
     end;
 $$ language plpgsql;
 
-create function update_subject_average_mark(updated_subject_id uuid) returns void
+create or replace function update_subject_average_mark(updated_subject_id uuid) returns void
 as $$
     begin
         update subject
@@ -252,7 +253,7 @@ as $$
     end;
 $$ language plpgsql;
 
-create function after_insert_review_trigger() returns trigger
+create or replace function after_insert_review_trigger() returns trigger
 as $after_insert_review_trigger$
 begin
     perform change_subject_reviews_count(new.subject_id, 1);
@@ -261,7 +262,7 @@ begin
 end;
 $after_insert_review_trigger$ language plpgsql;
 
-create function after_delete_review_trigger() returns trigger
+create or replace function after_delete_review_trigger() returns trigger
 as $after_delete_review_trigger$
 begin
     perform change_subject_reviews_count(old.subject_id, -1);
@@ -270,7 +271,7 @@ begin
 end;
 $after_delete_review_trigger$ language plpgsql;
 
-create function after_update_review_trigger() returns trigger
+create or replace function after_update_review_trigger() returns trigger
 as $after_delete_review_trigger$
 begin
     perform update_subject_average_mark(new.subject_id);
@@ -290,7 +291,7 @@ create trigger after_update_review_trigger after update on review
 
 
 
-create function change_review_upvotes_count (updated_review_id uuid, upvotes_delta_count int) returns void
+create or replace function change_review_upvotes_count (updated_review_id uuid, upvotes_delta_count int) returns void
 as $$
     begin
         update review
@@ -300,7 +301,7 @@ as $$
 $$ language plpgsql;
 
 
-create function change_review_downvotes_count (updated_review_id uuid, downvotes_delta_count int) returns void
+create or replace function change_review_downvotes_count (updated_review_id uuid, downvotes_delta_count int) returns void
 as $$
 begin
     update review
@@ -338,4 +339,55 @@ create trigger after_insert_review_vote_trigger after insert on review_vote
 
 create trigger after_delete_review_vote_trigger after delete on review_vote
     for each row execute procedure after_delete_review_vote_trigger();
+
+
+
+create or replace function change_review_comment_upvotes_count (updated_review_comment_id uuid, upvotes_delta_count int) returns void
+as $$
+begin
+    update review_comment
+    set upvotes_count = upvotes_count + upvotes_delta_count
+    where id = updated_review_comment_id;
+end;
+$$ language plpgsql;
+
+
+create or replace function change_review_comment_downvotes_count (updated_review_comment_id uuid, downvotes_delta_count int) returns void
+as $$
+begin
+    update review_comment
+    set downvotes_count = downvotes_count + downvotes_delta_count
+    where id = updated_review_comment_id;
+end;
+$$ language plpgsql;
+
+create or replace function after_insert_review_comment_vote_trigger() returns trigger
+as $after_insert_review_comment_vote_trigger$
+begin
+    if new.type = 'UP' then
+        perform change_review_comment_upvotes_count(new.review_comment_id, 1);
+    else
+        perform change_review_comment_downvotes_count(new.review_comment_id, 1);
+    end if;
+    return new;
+end;
+$after_insert_review_comment_vote_trigger$ language plpgsql;
+
+create or replace function after_delete_review_comment_vote_trigger() returns trigger
+as $after_delete_review_comment_vote_trigger$
+begin
+    if old.type = 'UP' then
+        perform change_review_comment_upvotes_count(old.review_comment_id, -1);
+    else
+        perform change_review_comment_downvotes_count(old.review_comment_id, -1);
+    end if;
+    return old;
+end;
+$after_delete_review_comment_vote_trigger$ language plpgsql;
+
+create trigger after_insert_review_comment_vote_trigger after insert on review_comment_vote
+    for each row execute procedure after_insert_review_comment_vote_trigger();
+
+create trigger after_delete_review_comment_vote_trigger after delete on review_comment_vote
+    for each row execute procedure after_delete_review_comment_vote_trigger();
 
