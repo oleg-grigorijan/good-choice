@@ -234,14 +234,56 @@ create table email_task
 );
 
 
-create function update_subject_reviews_count() returns trigger as $update_subject_reviews_count$
-begin
-    update subject
-    set reviews_count = reviews_count + 1
-        where id = NEW.subject_id;
-    return NEW;
-end;
-    $update_subject_reviews_count$ language plpgsql;
+create function change_subject_reviews_count(updated_subject_id uuid, reviews_delta_count int) returns void
+as $$
+    begin
+        update subject
+        set reviews_count = reviews_count + reviews_delta_count
+            where id = updated_subject_id;
+    end;
+$$ language plpgsql;
 
-create trigger update_subject_reviews_count before insert on review
-    for each row execute procedure update_subject_reviews_count();
+create function update_subject_average_mark(updated_subject_id uuid) returns void
+as $$
+    begin
+        update subject
+        set average_mark = (select AVG(mark) from review)
+            where id = updated_subject_id;
+    end;
+$$ language plpgsql;
+
+create function after_insert_review_trigger() returns trigger
+as $after_insert_review_trigger$
+begin
+    perform change_subject_reviews_count(new.subject_id, 1);
+    perform update_subject_average_mark(new.subject_id);
+    return old;
+end;
+$after_insert_review_trigger$ language plpgsql;
+
+create function after_delete_review_trigger() returns trigger
+as $after_delete_review_trigger$
+begin
+    perform change_subject_reviews_count(old.subject_id, -1);
+    perform update_subject_average_mark(old.subject_id);
+    return old;
+end;
+$after_delete_review_trigger$ language plpgsql;
+
+create function after_update_review_trigger() returns trigger
+as $after_delete_review_trigger$
+begin
+    perform update_subject_average_mark(new.subject_id);
+    return new;
+end;
+$after_delete_review_trigger$ language plpgsql;
+
+create trigger after_insert_review_trigger after insert on review
+    for each row execute procedure after_insert_review_trigger();
+
+create trigger after_delete_review_trigger after delete on review
+    for each row execute procedure after_delete_review_trigger();
+
+create trigger after_update_review_trigger after update on review
+    for each row execute procedure after_update_review_trigger();
+
