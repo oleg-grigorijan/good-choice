@@ -18,8 +18,8 @@ create table actor
     email              varchar(320) unique, -- TODO: Email verification on registration, on update
     role               actor_role not null,
     password           varchar(60) not null,
-    created_timestamp  timestamp not null,
-    profile_image_id uuid references image,                         -- TODO: Images question
+    created_timestamp  timestamp not null default CURRENT_TIMESTAMP,
+    profile_image_id   uuid references image,                         -- TODO: default image
     is_active          boolean not null default true
 );
 
@@ -43,7 +43,7 @@ create table brand
     id          uuid primary key,
     name        varchar(64) not null,
     description text not null,
-    logo_id     uuid -- TODO: Images question
+    logo_id     uuid references image -- TODO: Images question
 );
 
 create table brand_presenter_details
@@ -68,10 +68,16 @@ create table subject
     description   varchar not null,
     brand_id      uuid not null references brand,
     is_shown      boolean not null default true,
-    primary_image_id uuid not null references subject_image,
-    -- TODO?: It will be nice to store more detailed subject summary: count of 5, 4, ..., 0 marks
-    reviews_count int not null default 0,  -- TODO: Trigger
+    -- TODO: primary_image_id uuid not null references subject_image,
+    reviews_count integer not null default 0,  -- TODO: Trigger
     average_mark  float not null default 0 -- TODO: Trigger
+);
+
+create table subject_image
+(
+    id uuid primary key,
+    image_id uuid not null references image,
+    subject_id uuid not null references subject
 );
 
 create table subject_to_mark
@@ -82,23 +88,17 @@ create table subject_to_mark
     primary key (subject_id, mark)
 );
 
-create table subject_image
-(
-    id uuid primary key,
-    image_id uuid not null references image,
-    subject_id uuid not null references subject
-);
-
 create table subject_tag
 (
     id   uuid primary key,
-    name varchar(128) not null
+    name varchar(128) not null,
+    subject_count integer not null default 0           -- TODO: Trigger
 );
 
 create table subject_to_tag
 (
     subject_id uuid references subject,
-    tag_id     uuid references subject_tag,
+    tag_id     uuid references subject_tag on delete cascade,
     primary key (subject_id, tag_id)
 );
 
@@ -109,9 +109,9 @@ create table review
     reviewer_id    uuid not null references actor,
     subject_id     uuid not null references subject, -- TODO?: Subjects created by reviewer
     mark           integer not null,
-    is_shown       boolean not null default true,    -- TODO?: Moderation status: HIDDEN, DECLINED, MODERATING, SHOWN
-    upvotesCount   int not null default 0,           -- TODO: Trigger
-    downvotesCount int not null default 0,           -- TODO: Trigger
+    is_shown       boolean not null default true,
+    upvotes_count   integer not null default 0,           -- TODO: Trigger
+    downvotes_count integer not null default 0,           -- TODO: Trigger
     constraint review_mark_range_check check (mark >= 1 and mark <= 5)
 );
 
@@ -139,7 +139,7 @@ create table review_image
 (
     id        uuid primary key,
     review_id uuid not null references review,
-    ordering  int not null
+    ordering  integer not null
 );
 
 create type vote_type as enum ('UP', 'DOWN');
@@ -161,8 +161,8 @@ create table review_comment
     created_timestamp timestamp not null,
     last_modified_timestamp timestamp not null,
     is_shown          boolean not null default true, -- TODO?: Moderation status
-    upvotesCount      int not null default 0,     -- TODO: Trigger
-    downvotesCount    int not null default 0      -- TODO: Trigger
+    upvotesCount      integer not null default 0,     -- TODO: Trigger
+    downvotesCount    integer not null default 0      -- TODO: Trigger
 );
 
 create table review_comment_vote
@@ -232,3 +232,16 @@ create table email_task
     type email_task_type not null,
     params varchar
 );
+
+
+create function update_subject_reviews_count() returns trigger as $update_subject_reviews_count$
+begin
+    update subject
+    set reviews_count = reviews_count + 1
+        where id = NEW.subject_id;
+    return NEW;
+end;
+    $update_subject_reviews_count$ language plpgsql;
+
+create trigger update_subject_reviews_count before insert on review
+    for each row execute procedure update_subject_reviews_count();
