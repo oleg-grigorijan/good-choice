@@ -18,9 +18,9 @@ create table actor
     email              varchar(320) unique, -- TODO: Email verification on registration, on update
     role               actor_role not null,
     password           varchar(60) not null,
-    created_timestamp  timestamp not null default CURRENT_TIMESTAMP,
-    profile_image_id   uuid references image,                         -- TODO: default image
-    is_active          boolean not null default true
+    created_timestamp  timestamp not null,
+    profile_image_id   uuid references image,
+    is_active          boolean not null
 );
 
 create table email_confirmation_token
@@ -67,10 +67,10 @@ create table subject
     name          varchar(128) not null,
     description   varchar not null,
     brand_id      uuid not null references brand,
-    is_shown      boolean not null default true,
+    is_shown      boolean not null,
     -- TODO: primary_image_id uuid not null references subject_image,
-    reviews_count integer not null default 0,  -- TODO: Trigger
-    average_mark  float not null default 0 -- TODO: Trigger
+    reviews_count integer not null,  -- TODO: Trigger
+    average_mark  float not null -- TODO: Trigger
 );
 
 create table subject_image
@@ -92,7 +92,7 @@ create table subject_tag
 (
     id   uuid primary key,
     name varchar(128) not null,
-    subject_count integer not null default 0           -- TODO: Trigger
+    subject_count integer not null           -- TODO: Trigger
 );
 
 create table subject_to_tag
@@ -109,9 +109,9 @@ create table review
     reviewer_id    uuid not null references actor,
     subject_id     uuid not null references subject, -- TODO?: Subjects created by reviewer
     mark           integer not null,
-    is_shown       boolean not null default true,
-    upvotes_count   integer not null default 0,           -- TODO: Trigger
-    downvotes_count integer not null default 0,           -- TODO: Trigger
+    is_shown       boolean not null,
+    upvotes_count   integer not null,           -- TODO: Trigger
+    downvotes_count integer not null,           -- TODO: Trigger
     constraint review_mark_range_check check (mark >= 1 and mark <= 5)
 );
 
@@ -160,8 +160,8 @@ create table review_comment
     content           varchar not null,
     created_timestamp timestamp not null,
     last_modified_timestamp timestamp not null,
-    is_shown          boolean not null default true, -- TODO?: Moderation status
-    upvotesCount      integer not null default 0,     -- TODO: Trigger
+    is_shown          boolean not null, -- TODO?: Moderation status
+    upvotesCount      integer not null,     -- TODO: Trigger
     downvotesCount    integer not null default 0      -- TODO: Trigger
 );
 
