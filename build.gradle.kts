@@ -9,8 +9,9 @@ plugins {
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.flywaydb.flyway") version "7.7.0"
     id("nu.studer.jooq") version "5.2"
-    kotlin("jvm") version "1.4.21"
-    kotlin("plugin.spring") version "1.4.21"
+    kotlin("jvm") version "1.4.30"
+    kotlin("plugin.serialization") version "1.4.30"
+    kotlin("plugin.spring") version "1.4.30"
 }
 
 group = "com.goodchoice"
@@ -30,9 +31,11 @@ dependencies {
     jooqGenerator("org.postgresql:postgresql")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.jooq:jooq-kotlin:${dependencyManagement.importedProperties["jooq.version"]}")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
@@ -74,6 +77,7 @@ jooq {
                     }
                     generate.apply {
                         isDeprecated = false
+                        isRecords = false
                         isNonnullAnnotation = true
                         nonnullAnnotationType = "org.jetbrains.annotations.NotNull"
                         isNullableAnnotation = true
