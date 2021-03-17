@@ -1,1 +1,8 @@
-
+springdoc:
+  packages-to-scan: 'com.goodchoice.rest'
+  api-docs:
+    path: /docs
+  swagger-ui:
+    path: /
+    display-request-duration: true
+    operationsSorter: method
