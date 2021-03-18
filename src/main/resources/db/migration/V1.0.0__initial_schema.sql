@@ -1,4 +1,3 @@
--- TODO: Checks and triggers
 -- TODO: Think about image storing and referencing
 -- TODO: Moderator feedback
 -- TODO?: Email tasks
@@ -30,6 +29,7 @@ create table email_confirmation_token
     email             varchar(320) not null unique,
     created_timestamp timestamp not null
 );
+create index email_confirmation_token_created_timestamp_idx ON email_confirmation_token (created_timestamp);
 
 create table password_recovery_token
 (
@@ -37,6 +37,8 @@ create table password_recovery_token
     actor_id          uuid references actor,
     created_timestamp timestamp not null
 );
+create index password_recovery_token_created_timestamp_idx ON password_recovery_token (created_timestamp);
+
 
 create table brand
 (
@@ -60,6 +62,8 @@ create table brand_invitation_token
     email             varchar(320) not null,
     created_timestamp timestamp not null
 );
+create index brand_invitation_token_created_timestamp_idx ON brand_invitation_token (created_timestamp);
+
 
 -- TODO?: Subject request
 create table subject
@@ -95,7 +99,7 @@ create table subject_tag
 (
     id   uuid primary key,
     name varchar(128) not null,
-    subjects_count integer not null           -- TODO: Trigger
+    subjects_count integer not null
 );
 
 create table subject_to_tag
@@ -117,6 +121,7 @@ create table review
     downvotes_count integer not null,
     constraint review_mark_range_check check (mark >= 1 and mark <= 5)
 );
+--TODO?: index by review_body_created_timestamp
 
 create table review_body
 (
@@ -136,6 +141,7 @@ create table review_point
     content   varchar(256) not null,
     primary key (review_id, ordering)
 );
+-- no sense in creating index by ordering because it does not guarantee select order
 
 create table review_image
 (
@@ -196,6 +202,8 @@ create table moderator_report
     created_timestamp       timestamp not null,
     last_modified_timestamp timestamp not null
 );
+create index moderator_report_created_timestamp_idx ON moderator_report (created_timestamp);
+
 
 create table moderator_report_to_reason
 (
@@ -232,8 +240,11 @@ create table email_task
 (
     id uuid primary key,
     type email_task_type not null,
-    params varchar
+    params varchar,
+    created_timestamp timestamp not null
 );
+create index email_task_created_timestamp_idx ON email_task (created_timestamp);
+
 
 
 create or replace function change_subject_reviews_count(updated_subject_id uuid, reviews_delta_count int) returns void
