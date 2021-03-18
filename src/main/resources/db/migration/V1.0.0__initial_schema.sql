@@ -25,7 +25,7 @@ create table actor
 create table email_confirmation_token
 (
     token             varchar(73) primary key,
-    actor_id          uuid references actor,
+    actor_id          uuid not null references actor,
     email             varchar(320) not null unique,
     created_timestamp timestamp not null
 );
@@ -34,7 +34,7 @@ create index email_confirmation_token_created_timestamp_idx ON email_confirmatio
 create table password_recovery_token
 (
     token             varchar(73) primary key,
-    actor_id          uuid references actor,
+    actor_id          uuid not null references actor,
     created_timestamp timestamp not null
 );
 create index password_recovery_token_created_timestamp_idx ON password_recovery_token (created_timestamp);
@@ -44,7 +44,7 @@ create table brand
 (
     id          uuid primary key,
     name        varchar(64) not null,
-    description text not null,
+    description text,
     logo_id     uuid references image
     --TODO?: subjects_count integer not null           -- TODO: Trigger
 );
@@ -70,7 +70,7 @@ create table subject
 (
     id            uuid primary key,
     name          varchar(128) not null,
-    description   varchar not null,
+    description   varchar,
     brand_id      uuid not null references brand,
     is_shown      boolean not null,
     --TODO: primary_image_id uuid references subject_image,
@@ -91,7 +91,7 @@ create table subject_to_mark
 (
     subject_id uuid references subject,
     mark integer,
-    count integer,
+    count integer not null,
     primary key (subject_id, mark)
 );
 
@@ -112,7 +112,7 @@ create table subject_to_tag
 create table review
 (
     id             uuid primary key,
-    title          varchar(128) not null,
+    title          varchar(128),
     reviewer_id    uuid not null references actor,
     subject_id     uuid not null references subject, -- TODO?: Subjects created by reviewer
     mark           integer not null,
@@ -128,6 +128,7 @@ create table review_body
     id                uuid primary key,
     review_id         uuid not null references review,
     content           varchar not null,
+    --TODO: last_modified_timestamp timestamp,
     created_timestamp timestamp not null
 );
 
@@ -136,7 +137,7 @@ create type review_point_type as enum ('ADVANTAGE', 'DISADVANTAGE');
 create table review_point
 (
     review_id uuid references review,
-    ordering  int,
+    ordering  int not null,
     type      review_point_type not null,
     content   varchar(256) not null,
     primary key (review_id, ordering)
@@ -149,6 +150,7 @@ create table review_image
     review_id uuid not null references review,
     ordering  integer not null
 );
+-- no sense in creating index by ordering because it does not guarantee select order
 
 create type vote_type as enum ('UP', 'DOWN');
 
@@ -200,7 +202,7 @@ create table moderator_report
     status                  report_status not null,
     assignee_moderator_id   uuid references actor,
     created_timestamp       timestamp not null,
-    last_modified_timestamp timestamp not null
+    last_modified_timestamp timestamp
 );
 create index moderator_report_created_timestamp_idx ON moderator_report (created_timestamp);
 
@@ -229,8 +231,8 @@ create table moderator_report_to_review_comment
 create table deleted_by_moderator_report
 (
     id  uuid primary key,
-    reason_id uuid references moderator_report_reason,
-    report_id uuid references moderator_report,
+    reason_id uuid not null references moderator_report_reason,
+    report_id uuid not null references moderator_report,
     note varchar
 );
 
