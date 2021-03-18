@@ -74,9 +74,9 @@ create table subject
     brand_id      uuid not null references brand,
     is_shown      boolean not null,
     --TODO: primary_image_id uuid references subject_image,
-    reviews_count integer not null check (reviews_count > 0),
+    reviews_count integer not null check (reviews_count >= 0),
     average_mark  float check ((average_mark >= 1) and (average_mark <= 5))
---  TODO:   constraint average_mark_check check ((average_mark IS NULL) = (reviews_count = 0))
+--  TODO?:   constraint average_mark_check check ((average_mark IS NULL) = (reviews_count = 0))
 );
 
 create table subject_image
@@ -114,13 +114,12 @@ create table review
     id             uuid primary key,
     title          varchar(128),
     reviewer_id    uuid not null references actor,
-    subject_id     uuid not null references subject, -- TODO?: Subjects created by reviewer
+    subject_id     uuid not null references subject,
     mark           integer not null check (mark >= 1 and mark <= 5),
     is_shown       boolean not null,
     upvotes_count   integer not null check (upvotes_count >= 0),
     downvotes_count integer not null check (downvotes_count >= 0)
 );
---TODO?: index by review_body_created_timestamp
 
 create table review_body
 (
@@ -130,6 +129,8 @@ create table review_body
     --TODO: last_modified_timestamp timestamp,
     created_timestamp timestamp not null
 );
+--TODO?: index by review_body_created_timestamp
+
 
 create type review_point_type as enum ('ADVANTAGE', 'DISADVANTAGE');
 
@@ -246,6 +247,15 @@ create table email_task
 );
 create index email_task_created_timestamp_idx ON email_task (created_timestamp);
 
+create or replace function check_1_reviewer_1_subject_1_review_with_is_shown_true(actor uuid, subject uuid) returns void
+as $$
+    begin
+        assert (select count(*) from review where
+            subject_id = subject
+            and reviewer_id = actor
+            and is_shown = true) <= 1, '1 review from this reviewer to this subject is already shown';
+    end;
+$$ language plpgsql;
 
 
 create or replace function change_subject_reviews_count(updated_subject_id uuid, reviews_delta_count int) returns void
@@ -271,6 +281,7 @@ as $after_insert_review_trigger$
 begin
     perform change_subject_reviews_count(new.subject_id, 1);
     perform update_subject_average_mark(new.subject_id);
+    perform check_1_reviewer_1_subject_1_review_with_is_shown_true(new.reviewer_id, new.subject_id);
     return old;
 end;
 $after_insert_review_trigger$ language plpgsql;
@@ -288,6 +299,7 @@ create or replace function after_update_review_trigger() returns trigger
 as $after_delete_review_trigger$
 begin
     perform update_subject_average_mark(new.subject_id);
+    perform check_1_reviewer_1_subject_1_review_with_is_shown_true(new.reviewer_id, new.subject_id);
     return new;
 end;
 $after_delete_review_trigger$ language plpgsql;
