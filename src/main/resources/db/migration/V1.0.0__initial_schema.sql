@@ -74,8 +74,8 @@ create table subject
     brand_id      uuid not null references brand,
     is_shown      boolean not null,
     --TODO: primary_image_id uuid references subject_image,
-    reviews_count integer not null,
-    average_mark  float
+    reviews_count integer not null check (reviews_count > 0),
+    average_mark  float check ((average_mark >= 1) and (average_mark <= 5))
 --  TODO:   constraint average_mark_check check ((average_mark IS NULL) = (reviews_count = 0))
 );
 
@@ -90,8 +90,8 @@ create table subject_image
 create table subject_to_mark
 (
     subject_id uuid references subject,
-    mark integer,
-    count integer not null,
+    mark integer check ((mark >= 1) and (mark <= 5)),
+    count integer not null check (count > 0),
     primary key (subject_id, mark)
 );
 
@@ -99,7 +99,7 @@ create table subject_tag
 (
     id   uuid primary key,
     name varchar(128) not null,
-    subjects_count integer not null
+    subjects_count integer not null check (subjects_count > 0)
 );
 
 create table subject_to_tag
@@ -115,11 +115,10 @@ create table review
     title          varchar(128),
     reviewer_id    uuid not null references actor,
     subject_id     uuid not null references subject, -- TODO?: Subjects created by reviewer
-    mark           integer not null,
+    mark           integer not null check (mark >= 1 and mark <= 5),
     is_shown       boolean not null,
-    upvotes_count   integer not null,
-    downvotes_count integer not null,
-    constraint review_mark_range_check check (mark >= 1 and mark <= 5)
+    upvotes_count   integer not null check (upvotes_count >= 0),
+    downvotes_count integer not null check (downvotes_count >= 0)
 );
 --TODO?: index by review_body_created_timestamp
 
@@ -137,7 +136,7 @@ create type review_point_type as enum ('ADVANTAGE', 'DISADVANTAGE');
 create table review_point
 (
     review_id uuid references review,
-    ordering  int not null,
+    ordering  int not null check (ordering >= 0),
     type      review_point_type not null,
     content   varchar(256) not null,
     primary key (review_id, ordering)
@@ -148,7 +147,7 @@ create table review_image
 (
     id        uuid primary key,
     review_id uuid not null references review,
-    ordering  integer not null
+    ordering  integer not null check (ordering >= 0)
 );
 -- no sense in creating index by ordering because it does not guarantee select order
 
@@ -171,8 +170,8 @@ create table review_comment
     created_timestamp timestamp not null,
     --TODO: last_modified_timestamp timestamp,
     is_shown          boolean not null,
-    upvotes_count      integer not null,
-    downvotes_count    integer not null
+    upvotes_count      integer not null check (upvotes_count >= 0),
+    downvotes_count    integer not null check (downvotes_count >= 0)
 );
 
 create table review_comment_vote
@@ -436,3 +435,5 @@ create trigger after_insert_subject_to_tag_trigger after insert on subject_to_ta
 
 create trigger after_delete_subject_to_tag_trigger after delete on subject_to_tag
     for each row execute procedure after_delete_subject_to_tag_trigger();
+
+
