@@ -392,3 +392,34 @@ create trigger after_insert_review_comment_vote_trigger after insert on review_c
 create trigger after_delete_review_comment_vote_trigger after delete on review_comment_vote
     for each row execute procedure after_delete_review_comment_vote_trigger();
 
+
+create or replace function change_subject_tag_subjects_count(updated_subject_tag_id uuid, subjects_delta_count int) returns void
+as $$
+begin
+    update subject_tag
+    set subjects_count = subjects_count + subjects_delta_count
+    where id = updated_subject_tag_id;
+end;
+$$ language plpgsql;
+
+create or replace function after_insert_subject_to_tag_trigger() returns trigger
+as $after_insert_subject_to_tag_trigger$
+begin
+    perform change_subject_tag_subjects_count(new.tag_id, 1);
+    return new;
+end;
+$after_insert_subject_to_tag_trigger$ language plpgsql;
+
+create or replace function after_delete_subject_to_tag_trigger() returns trigger
+as $after_delete_review_comment_vote_trigger$
+begin
+    perform change_subject_tag_subjects_count(old.tag_id, -1);
+    return old;
+end;
+$after_delete_review_comment_vote_trigger$ language plpgsql;
+
+create trigger after_insert_subject_to_tag_trigger after insert on subject_to_tag
+    for each row execute procedure after_insert_subject_to_tag_trigger();
+
+create trigger after_delete_subject_to_tag_trigger after delete on subject_to_tag
+    for each row execute procedure after_delete_subject_to_tag_trigger();
