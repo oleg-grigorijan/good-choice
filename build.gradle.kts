@@ -8,7 +8,8 @@ plugins {
     id("org.springframework.boot") version "2.4.2"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.flywaydb.flyway") version "7.7.0"
-    id("nu.studer.jooq") version "5.2"kotlin("jvm") version "1.4.21"
+    id("nu.studer.jooq") version "5.2"
+    kotlin("jvm") version "1.4.21"
     kotlin("plugin.spring") version "1.4.21"
 }
 
@@ -26,13 +27,14 @@ repositories {
 }
 
 val springdocVersion = "1.5.6"
+val jooqVersion = dependencyManagement.importedProperties["jooq.version"]
 
 dependencies {
     jooqGenerator("org.postgresql:postgresql")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("org.jooq:jooq-kotlin:${dependencyManagement.importedProperties["jooq.version"]}")
+    implementation("org.jooq:jooq-kotlin:$jooqVersion")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-security:$springdocVersion")
@@ -41,7 +43,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     runtimeOnly("org.postgresql:postgresql")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")developmentOnly("org.springframework.boot:spring-boot-devtools")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
 
 flyway {
@@ -52,7 +55,7 @@ flyway {
 }
 
 jooq {
-    version.set(dependencyManagement.importedProperties["jooq.version"])
+    version.set(jooqVersion)
     edition.set(JooqEdition.OSS)
 
     configurations {
@@ -91,17 +94,6 @@ jooq {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 tasks.withType<JooqGenerate> {
     dependsOn(tasks.withType<FlywayMigrateTask>())
 
@@ -111,4 +103,15 @@ tasks.withType<JooqGenerate> {
 
     allInputsDeclared.set(true)
     outputs.cacheIf { true }
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjsr305=strict")
+        jvmTarget = "11"
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
