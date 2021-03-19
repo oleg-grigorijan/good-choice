@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class GoodChoiceApplication
 
 fun main(args: Array<String>) {
-	runApplication<GoodChoiceApplication>(*args)
+    runApplication<GoodChoiceApplication>(*args)
 }
