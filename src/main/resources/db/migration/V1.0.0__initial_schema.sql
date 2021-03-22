@@ -1,12 +1,8 @@
--- TODO: Think about image storing and referencing
--- TODO: Moderator feedback
--- TODO?: Email tasks
-
-create type actor_role as enum ('REVIEWER', 'HR', 'MODERATOR', 'ADMINISTRATOR', 'BRAND_PRESENTER');
+create type actor_role as enum ('REVIEWER', 'HR', 'MODERATOR', 'ADMINISTRATOR', 'BRAND_PRESENTER', 'SYSTEM');
 
 create table image(
     id uuid primary key,
-    location varchar not null
+    location varchar(256) not null
 );
 
 create table actor
@@ -14,7 +10,7 @@ create table actor
     id                 uuid primary key,
     first_name         varchar(64) not null,
     last_name          varchar(64) not null,
-    email              varchar(320) unique, -- TODO: Email verification on registration, on update
+    email              varchar(320),
     role               actor_role not null,
     password           varchar(60) not null,
     created_timestamp  timestamp not null,
@@ -44,7 +40,7 @@ create table brand
 (
     id          uuid primary key,
     name        varchar(64) not null,
-    description text,
+    description varchar not null,
     logo_id     uuid references image
     --TODO?: subjects_count integer not null           -- TODO: Trigger
 );
@@ -65,7 +61,6 @@ create table brand_invitation_token
 create index brand_invitation_token_created_timestamp_idx ON brand_invitation_token (created_timestamp);
 
 
--- TODO?: Subject request
 create table subject
 (
     id            uuid primary key,
@@ -81,9 +76,9 @@ create table subject
 
 create table subject_image
 (
-    id uuid primary key,
+    subject_id uuid not null references subject,
     image_id uuid not null references image,
-    subject_id uuid not null references subject
+    primary key (subject_id, image_id)
 );
 
 
@@ -112,7 +107,7 @@ create table subject_to_tag
 create table review
 (
     id             uuid primary key,
-    title          varchar(128),
+    title          varchar(128) not null,
     reviewer_id    uuid not null references actor,
     subject_id     uuid not null references subject,
     mark           integer not null check (mark >= 1 and mark <= 5),
@@ -126,10 +121,8 @@ create table review_body
     id                uuid primary key,
     review_id         uuid not null references review,
     content           varchar not null,
-    --TODO: last_modified_timestamp timestamp,
     created_timestamp timestamp not null
 );
---TODO?: index by review_body_created_timestamp
 
 
 create type review_point_type as enum ('ADVANTAGE', 'DISADVANTAGE');
@@ -146,7 +139,7 @@ create table review_point
 
 create table review_image
 (
-    id        uuid primary key,
+    image_id        uuid primary key references image,
     review_id uuid not null references review,
     ordering  integer not null check (ordering >= 0)
 );
@@ -169,7 +162,6 @@ create table review_comment
     author_id         uuid not null references actor,
     content           varchar not null,
     created_timestamp timestamp not null,
-    --TODO: last_modified_timestamp timestamp,
     is_shown          boolean not null,
     upvotes_count      integer not null check (upvotes_count >= 0),
     downvotes_count    integer not null check (downvotes_count >= 0)
@@ -182,8 +174,6 @@ create table review_comment_vote
     type              vote_type not null,
     primary key (review_comment_id, reviewer_id)
 );
-
-create type report_issuer_type as enum ('GUEST', 'REVIEWER', 'BRAND_OWNER', 'SYSTEM');
 
 create type report_status as enum ('OPEN', 'IN_PROGRESS', 'CLOSED');
 
@@ -235,17 +225,6 @@ create table deleted_by_moderator_report
     report_id uuid not null references moderator_report,
     note varchar
 );
-
-create type email_task_type as enum ('SEND_EMAIL');
-
-create table email_task
-(
-    id uuid primary key,
-    type email_task_type not null,
-    params varchar,
-    created_timestamp timestamp not null
-);
-create index email_task_created_timestamp_idx ON email_task (created_timestamp);
 
 create or replace function check_1_reviewer_1_subject_1_review_with_is_shown_true(actor uuid, subject uuid) returns void
 as $$
