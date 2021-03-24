@@ -27,22 +27,26 @@ repositories {
     mavenCentral()
 }
 
+val springdocVersion = "1.5.6"
+val jooqVersion = dependencyManagement.importedProperties["jooq.version"]
+
 dependencies {
     jooqGenerator("org.postgresql:postgresql")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("org.jooq:jooq-kotlin:${dependencyManagement.importedProperties["jooq.version"]}")
+    implementation("org.jooq:jooq-kotlin:$jooqVersion")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-security:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
     runtimeOnly("org.postgresql:postgresql")
-
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
 
@@ -54,7 +58,7 @@ flyway {
 }
 
 jooq {
-    version.set(dependencyManagement.importedProperties["jooq.version"])
+    version.set(jooqVersion)
     edition.set(JooqEdition.OSS)
 
     configurations {
@@ -94,17 +98,6 @@ jooq {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 tasks.withType<JooqGenerate> {
     dependsOn(tasks.withType<FlywayMigrateTask>())
 
@@ -114,4 +107,15 @@ tasks.withType<JooqGenerate> {
 
     allInputsDeclared.set(true)
     outputs.cacheIf { true }
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjsr305=strict")
+        jvmTarget = "11"
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

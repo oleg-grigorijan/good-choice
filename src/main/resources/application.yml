@@ -9,3 +9,13 @@ spring:
     password: '${JDBC_DATABASE_PASSWORD:good-choice-pass}'
 
   jooq.sql-dialect: postgres
+
+springdoc:
+  packages-to-scan: 'com.goodchoice.rest'
+  api-docs:
+    path: /docs
+  swagger-ui:
+    path: /
+    display-request-duration: true
+    operationsSorter: method
+  show-login-endpoint: true
