@@ -51,6 +51,7 @@ create table brand_presenter_details
 create table brand_invitation_token
 (
     token             varchar(73) primary key,
+    --todo: what if deleting brand?
     brand_id          uuid         not null references brand,
     email             varchar(320) not null,
     created_timestamp timestamp    not null
@@ -486,15 +487,15 @@ execute procedure review_comment_vote_trigger();
 -- execute procedure after_delete_review_comment_vote_trigger();
 
 
-create function change_subject_tag_subjects_count(updated_subject_tag_id uuid, subjects_delta_count int) returns void
-as
-$$
-begin
-    update subject_tag
-    set subjects_count = subjects_count + subjects_delta_count
-    where id = updated_subject_tag_id;
-end;
-$$ language plpgsql;
+-- create function change_subject_tag_subjects_count(updated_subject_tag_id uuid, subjects_delta_count int) returns void
+-- as
+-- $$
+-- begin
+--     update subject_tag
+--     set subjects_count = subjects_count + subjects_delta_count
+--     where id = updated_subject_tag_id;
+-- end;
+-- $$ language plpgsql;
 
 create function subject_to_tag_trigger() returns trigger
 as
@@ -549,17 +550,13 @@ begin
                (new.id, 4, 0),
                (new.id, 5, 0);
         return new;
-
-    elsif (tg_op = 'DELETE') then
-        delete from subject_to_mark where subject_id = old.id;
-        return old;
     end if;
 
 end;
 $$ language plpgsql;
 
 create trigger subject_trigger
-    after insert or update
+    after insert
     on subject
     for each row
 execute procedure subject_trigger();
