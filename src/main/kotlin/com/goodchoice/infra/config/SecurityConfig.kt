@@ -1,16 +1,23 @@
 package com.goodchoice.infra.config
 
+import com.goodchoice.domain.auth.AuthRepository
+import com.goodchoice.domain.auth.AuthUserDetails
+import com.goodchoice.domain.auth.JooqAuthRepository
+import org.jooq.DSLContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod.GET
 import org.springframework.http.HttpMethod.POST
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.UNAUTHORIZED
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy.STATELESS
 import org.springframework.security.config.web.servlet.invoke
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.AuthenticationEntryPoint
@@ -19,10 +26,21 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig : WebSecurityConfigurerAdapter() {
+class SecurityConfig(private val authRepo: AuthRepository) : WebSecurityConfigurerAdapter() {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+
+    @Bean
+    fun authRepo(db: DSLContext): AuthRepository = JooqAuthRepository(db)
+
+    override fun configure(auth: AuthenticationManagerBuilder) {
+        auth.userDetailsService(UserDetailsService { email ->
+            authRepo.getByEmailOrNull(email)
+                ?.let { AuthUserDetails(it.id, it.email, it.role, it.password) }
+                ?: throw UsernameNotFoundException(email)
+        })
+    }
 
     override fun configure(http: HttpSecurity) {
         http {
