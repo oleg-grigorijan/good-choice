@@ -18,3 +18,4 @@ springdoc:
     path: /
     display-request-duration: true
     operationsSorter: method
+  show-login-endpoint: true

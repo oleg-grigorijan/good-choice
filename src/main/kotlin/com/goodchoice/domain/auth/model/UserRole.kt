@@ -1,4 +1,4 @@
-package com.goodchoice.domain.auth
+package com.goodchoice.domain.auth.model
 
 enum class UserRole {
     REVIEWER,

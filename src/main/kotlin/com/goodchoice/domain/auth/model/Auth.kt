@@ -1,4 +1,4 @@
-package com.goodchoice.domain.auth
+package com.goodchoice.domain.auth.model
 
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -16,7 +16,7 @@ fun Auth.requireRole(role: UserRole) {
     if (role != this.role) throw RuntimeException()
 }
 
-class AuthUserDetails(
+class SpringAuth(
     override val id: UUID,
     override val email: String,
     override val role: UserRole,

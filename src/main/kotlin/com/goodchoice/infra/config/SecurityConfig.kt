@@ -1,9 +1,7 @@
 package com.goodchoice.infra.config
 
-import com.goodchoice.domain.auth.AuthRepository
-import com.goodchoice.domain.auth.AuthUserDetails
-import com.goodchoice.domain.auth.JooqAuthRepository
-import org.jooq.DSLContext
+import com.goodchoice.domain.auth.model.SpringAuth
+import com.goodchoice.domain.auth.persistence.AuthRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod.GET
@@ -31,13 +29,10 @@ class SecurityConfig(private val authRepo: AuthRepository) : WebSecurityConfigur
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
-    @Bean
-    fun authRepo(db: DSLContext): AuthRepository = JooqAuthRepository(db)
-
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.userDetailsService(UserDetailsService { email ->
             authRepo.getByEmailOrNull(email)
-                ?.let { AuthUserDetails(it.id, it.email, it.role, it.password) }
+                ?.let { SpringAuth(it.id, it.email, it.role, it.password) }
                 ?: throw UsernameNotFoundException(email)
         })
     }
@@ -55,14 +50,7 @@ class SecurityConfig(private val authRepo: AuthRepository) : WebSecurityConfigur
                 authorize(POST, "/reviewers", permitAll)
                 authorize("/**", authenticated)
             }
-            httpBasic { }
-            sessionManagement {
-                sessionCreationPolicy = STATELESS
-            }
-            csrf {
-                disable()
-            }
-            exceptionHandling {
+            httpBasic {
                 authenticationEntryPoint = AuthenticationEntryPoint { _, response, _ ->
                     response.status = UNAUTHORIZED.value()
                 }
@@ -75,6 +63,12 @@ class SecurityConfig(private val authRepo: AuthRepository) : WebSecurityConfigur
                 authenticationFailureHandler = AuthenticationFailureHandler { _, response, _ ->
                     response.status = UNAUTHORIZED.value()
                 }
+            }
+            sessionManagement {
+                sessionCreationPolicy = STATELESS
+            }
+            csrf {
+                disable()
             }
         }
     }

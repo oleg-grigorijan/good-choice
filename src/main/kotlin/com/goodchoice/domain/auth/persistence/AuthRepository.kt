@@ -1,5 +1,7 @@
-package com.goodchoice.domain.auth
+package com.goodchoice.domain.auth.persistence
 
+import com.goodchoice.domain.auth.model.UserRole
+import com.goodchoice.domain.auth.toUserRole
 import com.goodchoice.domain.common.jooq.Tables.ACTOR
 import org.jooq.DSLContext
 import java.util.*
@@ -19,5 +21,4 @@ class JooqAuthRepository(private val db: DSLContext) : AuthRepository {
             .where(ACTOR.EMAIL.eq(email))
             .fetchOne()
             ?.map { AuthView(it[ACTOR.ID], email, it[ACTOR.ROLE].toUserRole(), it[ACTOR.PASSWORD]) }
-
 }
