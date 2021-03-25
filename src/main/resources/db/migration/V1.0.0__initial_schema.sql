@@ -39,6 +39,7 @@ create table brand
     id          uuid primary key,
     name        varchar(64) not null,
     description varchar     not null,
+    is_active   boolean     not null,
     logo_id     uuid references image
 );
 
@@ -51,7 +52,6 @@ create table brand_presenter_details
 create table brand_invitation_token
 (
     token             varchar(73) primary key,
-    --todo: what if deleting brand?
     brand_id          uuid         not null references brand,
     email             varchar(320) not null,
     created_timestamp timestamp    not null
@@ -69,7 +69,7 @@ create table subject
 
 create table subject_image
 (
-    image_id   uuid primary key references image,
+    image_id   uuid primary key references image on delete cascade,
     subject_id uuid not null references subject
 );
 
@@ -128,16 +128,13 @@ create table review_point
     content   varchar(256)      not null,
     primary key (review_id, ordering)
 );
---todo: create index with select ordering
-
 
 create table review_image
 (
-    image_id  uuid primary key references image,
+    image_id  uuid primary key references image on delete cascade,
     review_id uuid    not null references review,
     ordering  integer not null check (ordering >= 0)
 );
---todo: create index with select ordering
 
 create type vote_type as enum ('UP', 'DOWN');
 
@@ -210,7 +207,7 @@ create table moderator_report_to_review_comment
     review_comment_id uuid references review_comment,
     primary key (report_id, review_comment_id)
 );
-create function check_1_reviewer_1_subject_1_review_with_is_shown_true(actor uuid, subject uuid) returns void
+create or replace function check_1_reviewer_1_subject_1_review_with_is_shown_true(actor uuid, subject uuid) returns void
 as
 $$
 begin
@@ -222,13 +219,13 @@ begin
 end;
 $$ language plpgsql;
 
-create function review_trigger() returns trigger
+create or replace function review_trigger() returns trigger
 as
 $$
 begin
     if (tg_op = 'INSERT') then
         update subject_to_mark
-        set subject_to_mark.count = subject_to_mark.count + 1
+        set count = count + 1
         where subject_to_mark.subject_id = new.subject_id
           and subject_to_mark.mark = new.mark;
 
@@ -240,12 +237,12 @@ begin
 
 
             update subject_to_mark
-            set subject_to_mark.count = subject_to_mark.count - 1
+            set count = count - 1
             where subject_to_mark.subject_id = old.subject_id
               and subject_to_mark.mark = old.mark;
 
             update subject_to_mark
-            set subject_to_mark.count = subject_to_mark.count + 1
+            set count = count + 1
             where subject_to_mark.subject_id = new.subject_id
               and subject_to_mark.mark = new.mark;
         end if;
@@ -255,7 +252,7 @@ begin
 
     elsif (tg_op = 'DELETE') then
         update subject_to_mark
-        set subject_to_mark.count = subject_to_mark.count - 1
+        set count = count - 1
         where subject_to_mark.subject_id = old.subject_id
           and subject_to_mark.mark = old.mark;
 
@@ -266,75 +263,25 @@ begin
 end;
 $$ language plpgsql;
 
--- create function after_delete_review_trigger() returns trigger
--- as
--- $$
--- begin
---     perform change_subject_reviews_count(old.subject_id, -1);
---     perform update_subject_average_mark(old.subject_id);
---     return old;
--- end;
--- $$ language plpgsql;
---
--- create function after_update_review_trigger() returns trigger
--- as
--- $$
--- begin
---     perform update_subject_average_mark(new.subject_id);
---     perform check_1_reviewer_1_subject_1_review_with_is_shown_true(new.reviewer_id, new.subject_id);
---     return new;
--- end;
--- $$ language plpgsql;
-
 create trigger after_insert_review_trigger
     after insert or update or delete
     on review
     for each row
 execute procedure review_trigger();
 
--- create trigger after_delete_review_trigger
---     after delete
---     on review
---     for each row
--- execute procedure after_delete_review_trigger();
---
--- create trigger after_update_review_trigger
---     after update
---     on review
---     for each row
--- execute procedure after_update_review_trigger();
-
-
--- create function change_review_upvotes_count(updated_review_id uuid, upvotes_delta_count int) returns void
--- as
--- $$
--- begin
---     update review
---     set upvotes_count = upvotes_count + upvotes_delta_count
---     where id = updated_review_id;
--- end;
--- $$ language plpgsql;
---
---
--- create function change_review_downvotes_count(updated_review_id uuid, downvotes_delta_count int) returns void
--- as
--- $$
--- begin
---     update review
---     set downvotes_count = downvotes_count + downvotes_delta_count
---     where id = updated_review_id;
--- end;
--- $$ language plpgsql;
-
-create function review_vote_trigger() returns trigger
+create or replace function review_vote_trigger() returns trigger
 as
 $$
 begin
     if (tg_op = 'INSERT') then
         if (new.type = 'UP') then
-            update review set review.upvotes_count = review.upvotes_count + 1 where review.id = new.review_id;
+            update review
+            set upvotes_count = upvotes_count + 1
+            where review.id = new.review_id;
         else
-            update review set review.downvotes_count = review.downvotes_count + 1 where review.id = new.review_id;
+            update review
+            set downvotes_count = downvotes_count + 1
+            where review.id = new.review_id;
         end if;
         return new;
 
@@ -342,13 +289,13 @@ begin
         if (new.type != old.type) then
             if (old.type = 'UP') then
                 update review
-                set review.upvotes_count   = review.upvotes_count - 1,
-                    review.downvotes_count = review.downvotes_count + 1
+                set upvotes_count   = upvotes_count - 1,
+                    downvotes_count = downvotes_count + 1
                 where review.id = new.review_id;
             else
                 update review
-                set review.upvotes_count   = review.upvotes_count + 1,
-                    review.downvotes_count = review.downvotes_count - 1
+                set upvotes_count   = upvotes_count + 1,
+                    downvotes_count = downvotes_count - 1
                 where review.id = new.review_id;
             end if;
         end if;
@@ -356,28 +303,19 @@ begin
 
     elsif (tg_op = 'DELETE') then
         if (old.type = 'UP') then
-            update review set review.upvotes_count = review.upvotes_count - 1 where review.id = old.review_id;
+            update review
+            set upvotes_count = upvotes_count - 1
+            where review.id = old.review_id;
         else
-            update review set review.downvotes_count = review.downvotes_count - 1 where review.id = old.review_id;
+            update review
+            set downvotes_count = downvotes_count - 1
+            where review.id = old.review_id;
         end if;
         return old;
     end if;
 
 end;
 $$ language plpgsql;
-
--- create function after_delete_review_vote_trigger() returns trigger
--- as
--- $$
--- begin
---     if old.type = 'UP' then
---         perform change_review_upvotes_count(old.review_id, -1);
---     else
---         perform change_review_downvotes_count(old.review_id, -1);
---     end if;
---     return old;
--- end;
--- $$ language plpgsql;
 
 create trigger review_vote_trigger
     after insert or update or delete
@@ -385,46 +323,18 @@ create trigger review_vote_trigger
     for each row
 execute procedure review_vote_trigger();
 
--- create trigger after_delete_review_vote_trigger
---     after delete
---     on review_vote
---     for each row
--- execute procedure after_delete_review_vote_trigger();
-
-
--- create function change_review_comment_upvotes_count(updated_review_comment_id uuid, upvotes_delta_count int) returns void
--- as
--- $$
--- begin
---     update review_comment
---     set upvotes_count = upvotes_count + upvotes_delta_count
---     where id = updated_review_comment_id;
--- end;
--- $$ language plpgsql;
---
---
--- create function change_review_comment_downvotes_count(updated_review_comment_id uuid, downvotes_delta_count int) returns void
--- as
--- $$
--- begin
---     update review_comment
---     set downvotes_count = downvotes_count + downvotes_delta_count
---     where id = updated_review_comment_id;
--- end;
--- $$ language plpgsql;
-
-create function review_comment_vote_trigger() returns trigger
+create or replace function review_comment_vote_trigger() returns trigger
 as
 $$
 begin
     if (tg_op = 'INSERT') then
         if (new.type = 'UP') then
             update review_comment
-            set review_comment.upvotes_count = review_comment.upvotes_count + 1
+            set upvotes_count = upvotes_count + 1
             where review_comment.id = new.review_comment_id;
         else
             update review_comment
-            set review_comment.downvotes_count = review_comment.downvotes_count + 1
+            set downvotes_count = downvotes_count + 1
             where review_comment.id = new.review_comment_id;
         end if;
         return new;
@@ -433,13 +343,13 @@ begin
         if (new.type != old.type) then
             if (old.type = 'UP') then
                 update review_comment
-                set review_comment.upvotes_count   = review_comment.upvotes_count - 1,
-                    review_comment.downvotes_count = review_comment.downvotes_count + 1
+                set upvotes_count   = upvotes_count - 1,
+                    downvotes_count = downvotes_count + 1
                 where review_comment.id = new.review_comment_id;
             else
                 update review_comment
-                set review_comment.upvotes_count   = review_comment.upvotes_count + 1,
-                    review_comment.downvotes_count = review_comment.downvotes_count - 1
+                set upvotes_count   = upvotes_count + 1,
+                    downvotes_count = downvotes_count - 1
                 where review_comment.id = new.review_comment_id;
             end if;
         end if;
@@ -448,11 +358,11 @@ begin
     elsif (tg_op = 'DELETE') then
         if (old.type = 'UP') then
             update review_comment
-            set review_comment.upvotes_count = review_comment.upvotes_count - 1
+            set upvotes_count = upvotes_count - 1
             where review_comment.id = old.review_comment_id;
         else
             update review_comment
-            set review_comment.downvotes_count = review_comment.downvotes_count - 1
+            set downvotes_count = downvotes_count - 1
             where review_comment.id = old.review_comment_id;
         end if;
         return old;
@@ -461,43 +371,13 @@ begin
 end;
 $$ language plpgsql;
 
--- create function after_delete_review_comment_vote_trigger() returns trigger
--- as
--- $$
--- begin
---     if old.type = 'UP' then
---         perform change_review_comment_upvotes_count(old.review_comment_id, -1);
---     else
---         perform change_review_comment_downvotes_count(old.review_comment_id, -1);
---     end if;
---     return old;
--- end;
--- $$ language plpgsql;
-
 create trigger review_comment_vote_trigger
     after insert or update or delete
     on review_comment_vote
     for each row
 execute procedure review_comment_vote_trigger();
---
--- create trigger after_delete_review_comment_vote_trigger
---     after delete
---     on review_comment_vote
---     for each row
--- execute procedure after_delete_review_comment_vote_trigger();
 
-
--- create function change_subject_tag_subjects_count(updated_subject_tag_id uuid, subjects_delta_count int) returns void
--- as
--- $$
--- begin
---     update subject_tag
---     set subjects_count = subjects_count + subjects_delta_count
---     where id = updated_subject_tag_id;
--- end;
--- $$ language plpgsql;
-
-create function subject_to_tag_trigger() returns trigger
+create or replace function subject_to_tag_trigger() returns trigger
 as
 $$
 begin
@@ -516,15 +396,6 @@ begin
 
 end;
 $$ language plpgsql;
---
--- create function after_delete_subject_to_tag_trigger() returns trigger
--- as
--- $$
--- begin
---     perform change_subject_tag_subjects_count(old.tag_id, -1);
---     return old;
--- end;
--- $$ language plpgsql;
 
 create trigger subject_to_tag_trigger
     after insert or delete
@@ -532,13 +403,7 @@ create trigger subject_to_tag_trigger
     for each row
 execute procedure subject_to_tag_trigger();
 
--- create trigger after_delete_subject_to_tag_trigger
---     after delete
---     on subject_to_tag
---     for each row
--- execute procedure after_delete_subject_to_tag_trigger();
-
-create function subject_trigger() returns trigger
+create or replace function subject_trigger() returns trigger
 as
 $$
 begin
