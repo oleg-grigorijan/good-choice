@@ -12,25 +12,25 @@ create table actor
     first_name        varchar(64) not null,
     last_name         varchar(64) not null,
     email             varchar(320) unique,
-    role              actor_role  not null,
+    role              actor_role not null,
     password          varchar(60) not null,
-    created_timestamp timestamp   not null,
+    created_timestamp timestamp not null,
     profile_image_id  uuid references image,
-    is_active         boolean     not null
+    is_active         boolean not null
 );
 
 create table email_confirmation_token
 (
     token             varchar(73) primary key,
-    actor_id          uuid         not null references actor,
+    actor_id          uuid not null references actor,
     email             varchar(320) not null,
-    created_timestamp timestamp    not null
+    created_timestamp timestamp not null
 );
 
 create table password_recovery_token
 (
     token             varchar(73) primary key,
-    actor_id          uuid      not null references actor,
+    actor_id          uuid not null references actor,
     created_timestamp timestamp not null
 );
 
@@ -38,8 +38,8 @@ create table brand
 (
     id          uuid primary key,
     name        varchar(64) not null,
-    description varchar     not null,
-    is_active   boolean     not null,
+    description varchar not null,
+    is_active   boolean not null,
     logo_id     uuid references image
 );
 
@@ -52,18 +52,18 @@ create table brand_presenter_details
 create table brand_invitation_token
 (
     token             varchar(73) primary key,
-    brand_id          uuid         not null references brand,
+    brand_id          uuid not null references brand,
     email             varchar(320) not null,
-    created_timestamp timestamp    not null
+    created_timestamp timestamp not null
 );
 
 create table subject
 (
     id               uuid primary key,
     name             varchar(128) not null,
-    description      varchar      not null,
-    brand_id         uuid         not null references brand,
-    is_shown         boolean      not null,
+    description      varchar not null,
+    brand_id         uuid not null references brand,
+    is_shown         boolean not null,
     primary_image_id uuid
 );
 
@@ -102,19 +102,19 @@ create table review
 (
     id              uuid primary key,
     title           varchar(128) not null,
-    reviewer_id     uuid         not null references actor,
-    subject_id      uuid         not null references subject,
-    mark            integer      not null check (mark >= 1 and mark <= 5),
-    is_shown        boolean      not null,
-    upvotes_count   integer      not null default 0 check (upvotes_count >= 0),
-    downvotes_count integer      not null default 0 check (downvotes_count >= 0)
+    reviewer_id     uuid not null references actor,
+    subject_id      uuid not null references subject,
+    mark            integer not null check (mark >= 1 and mark <= 5),
+    is_shown        boolean not null,
+    upvotes_count   integer not null default 0 check (upvotes_count >= 0),
+    downvotes_count integer not null default 0 check (downvotes_count >= 0)
 );
 
 create table review_body
 (
     id                uuid primary key,
-    review_id         uuid      not null references review,
-    content           varchar   not null,
+    review_id         uuid not null references review,
+    content           varchar not null,
     created_timestamp timestamp not null
 );
 
@@ -123,16 +123,16 @@ create type review_point_type as enum ('ADVANTAGE', 'DISADVANTAGE');
 create table review_point
 (
     review_id uuid references review,
-    ordering  int               not null check (ordering >= 0),
+    ordering  int not null check (ordering >= 0),
     type      review_point_type not null,
-    content   varchar(256)      not null,
+    content   varchar(256) not null,
     primary key (review_id, ordering)
 );
 
 create table review_image
 (
     image_id  uuid primary key references image on delete cascade,
-    review_id uuid    not null references review,
+    review_id uuid not null references review,
     ordering  integer not null check (ordering >= 0)
 );
 
@@ -149,13 +149,13 @@ create table review_vote
 create table review_comment
 (
     id                uuid primary key,
-    review_id         uuid      not null references review,
-    author_id         uuid      not null references actor,
-    content           varchar   not null,
+    review_id         uuid not null references review,
+    author_id         uuid not null references actor,
+    content           varchar not null,
     created_timestamp timestamp not null,
-    is_shown          boolean   not null,
-    upvotes_count     integer   not null default 0 check (upvotes_count >= 0),
-    downvotes_count   integer   not null default 0 check (downvotes_count >= 0)
+    is_shown          boolean not null,
+    upvotes_count     integer not null default 0 check (upvotes_count >= 0),
+    downvotes_count   integer not null default 0 check (downvotes_count >= 0)
 );
 
 create table review_comment_vote
@@ -182,8 +182,8 @@ create table moderator_report
     issuer_id               uuid references actor,
     status                  report_status not null,
     assignee_moderator_id   uuid references actor,
-    created_timestamp       timestamp     not null,
-    last_modified_timestamp timestamp     not null
+    created_timestamp       timestamp not null,
+    last_modified_timestamp timestamp not null
 );
 create index moderator_report_created_timestamp_idx ON moderator_report (created_timestamp);
 
@@ -223,43 +223,22 @@ create or replace function review_trigger() returns trigger
 as
 $$
 begin
-    if (tg_op = 'INSERT') then
-        update subject_to_mark
-        set count = count + 1
-        where subject_to_mark.subject_id = new.subject_id
-          and subject_to_mark.mark = new.mark;
+    perform check_1_reviewer_1_subject_1_review_with_is_shown_true(new.reviewer_id, new.subject_id);
 
-        perform check_1_reviewer_1_subject_1_review_with_is_shown_true(new.reviewer_id, new.subject_id);
-        return new;
-
-    elsif (tg_op = 'UPDATE') then
-        if new.mark != old.mark then
-
-
-            update subject_to_mark
-            set count = count - 1
-            where subject_to_mark.subject_id = old.subject_id
-              and subject_to_mark.mark = old.mark;
-
-            update subject_to_mark
-            set count = count + 1
-            where subject_to_mark.subject_id = new.subject_id
-              and subject_to_mark.mark = new.mark;
-        end if;
-
-        perform check_1_reviewer_1_subject_1_review_with_is_shown_true(new.reviewer_id, new.subject_id);
-        return new;
-
-    elsif (tg_op = 'DELETE') then
+    if (old is not null and old.is_shown) then
         update subject_to_mark
         set count = count - 1
         where subject_to_mark.subject_id = old.subject_id
           and subject_to_mark.mark = old.mark;
-
-        perform check_1_reviewer_1_subject_1_review_with_is_shown_true(old.reviewer_id, old.subject_id);
-        return old;
     end if;
 
+    if (new is not null and new.is_shown) then
+        update subject_to_mark
+        set count = count + 1
+        where subject_to_mark.subject_id = new.subject_id
+          and subject_to_mark.mark = new.mark;
+    end if;
+    return null;
 end;
 $$ language plpgsql;
 
