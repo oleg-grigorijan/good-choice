@@ -205,12 +205,12 @@ where id = 'a0000000-0000-0000-0000-000000000000';
 --start: testing review_comment_vote triggers
 insert into brand (id, name, description, logo_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', null, true);
-insert into subject (id, name, description, brand_id, is_shown)
-values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true);
-insert into actor (id, first_name, last_name, email, role, password, created_timestamp, profile_image_id, is_active)
+insert into subject (id, name, description, brand_id, is_shown, created_timestamp)
+values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true, now());
+insert into actor (id, first_name, last_name, email, role, password_hash, created_timestamp, profile_image_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'first_name', 'last_name', 'email', 'REVIEWER', 'password', now(), null,
         true);
-insert into actor (id, first_name, last_name, email, role, password, created_timestamp, profile_image_id, is_active)
+insert into actor (id, first_name, last_name, email, role, password_hash, created_timestamp, profile_image_id, is_active)
 values ('b0000000-0000-0000-0000-000000000000', 'first_name', 'last_name', 'newemail', 'REVIEWER', 'password', now(),
         null, true);
 insert into review (id, title, reviewer_id, subject_id, mark, is_shown, upvotes_count, downvotes_count)
@@ -275,10 +275,10 @@ where id = 'a0000000-0000-0000-0000-000000000000';
 --start: testing subject triggers
 insert into brand (id, name, description, logo_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', null, true);
-insert into subject (id, name, description, brand_id, is_shown)
-values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true);
-insert into subject (id, name, description, brand_id, is_shown)
-values ('b0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true);
+insert into subject (id, name, description, brand_id, is_shown, created_timestamp)
+values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true, now());
+insert into subject (id, name, description, brand_id, is_shown, created_timestamp)
+values ('b0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true, now());
 insert into subject_tag (id, name, subjects_count)
 values ('a0000000-0000-0000-0000-000000000000', 'subject_tag_name', 0);
 
