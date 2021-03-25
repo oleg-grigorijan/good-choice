@@ -1,12 +1,9 @@
 package com.goodchoice.domain.auth.persistence
 
-import com.goodchoice.domain.auth.model.UserRole
+import com.goodchoice.domain.auth.model.AuthView
 import com.goodchoice.domain.auth.toUserRole
 import com.goodchoice.domain.common.jooq.Tables.ACTOR
 import org.jooq.DSLContext
-import java.util.*
-
-data class AuthView(val id: UUID, val email: String, val role: UserRole, val password: String)
 
 interface AuthRepository {
 

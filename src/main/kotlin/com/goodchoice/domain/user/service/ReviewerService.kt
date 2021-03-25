@@ -1,5 +1,6 @@
 package com.goodchoice.domain.user.service
 
+import com.goodchoice.domain.common.model.encode
 import com.goodchoice.domain.user.model.ReviewerRegistrationRequest
 import com.goodchoice.domain.user.persistence.ReviewerRepository
 import com.goodchoice.domain.user.persistence.UserRepository
@@ -28,7 +29,7 @@ class ReviewerServiceImpl(
             email = request.email,
             firstName = request.firstName,
             lastName = request.lastName,
-            password = passwordEncoder.encode(request.password)
+            passwordHash = passwordEncoder.encode(request.password)
         )
     }
 }

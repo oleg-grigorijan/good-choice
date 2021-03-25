@@ -32,7 +32,7 @@ class SecurityConfig(private val authRepo: AuthRepository) : WebSecurityConfigur
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.userDetailsService(UserDetailsService { email ->
             authRepo.getByEmailOrNull(email)
-                ?.let { SpringAuth(it.id, it.email, it.role, it.password) }
+                ?.let { SpringAuth(it.id, it.email, it.role, it.passwordHash) }
                 ?: throw UsernameNotFoundException(email)
         })
     }

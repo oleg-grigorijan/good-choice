@@ -1,17 +1,23 @@
 package com.goodchoice.domain.user.model
 
+import com.goodchoice.domain.common.isMediumString
 import com.goodchoice.domain.common.model.Email
+import com.goodchoice.domain.common.model.Password
+import com.goodchoice.domain.common.normalizeSingleLine
 import com.goodchoice.infra.common.verify
 
 class ReviewerRegistrationRequest(
-    val firstName: String,
-    val lastName: String,
+    firstName: String,
+    lastName: String,
     val email: Email,
-    val password: String
+    val password: Password
 ) {
+
+    val firstName = firstName.normalizeSingleLine()
+    val lastName = lastName.normalizeSingleLine()
+
     init {
-//        firstName = firstName.trim()
-//
-//        verify(firstName.isSmallString()) {}
+        verify(firstName.isMediumString()) { RuntimeException() }
+        verify(lastName.isMediumString()) { RuntimeException() }
     }
 }

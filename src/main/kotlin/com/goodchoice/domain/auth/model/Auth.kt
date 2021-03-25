@@ -20,13 +20,13 @@ class SpringAuth(
     override val id: UUID,
     override val email: String,
     override val role: UserRole,
-    private val password: String
+    private val passwordHash: String
 ) : Auth, UserDetails {
 
     private val authorities: List<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_${role.name}"))
 
     override fun getUsername() = email
-    override fun getPassword() = password
+    override fun getPassword() = passwordHash
 
     override fun getAuthorities() = authorities
     override fun isAccountNonLocked() = true
