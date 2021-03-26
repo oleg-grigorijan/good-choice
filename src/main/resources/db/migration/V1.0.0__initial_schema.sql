@@ -14,9 +14,9 @@ create table actor
     email             varchar(320) null unique,
     role              actor_role not null,
     password_hash     varchar(60) not null,
-    created_timestamp timestamp not null,
     profile_image_id  uuid null references image on delete set null,
-    is_active         boolean not null
+    is_active         boolean not null,
+    created_timestamp timestamp not null
 );
 
 create table email_confirmation_token
@@ -40,7 +40,7 @@ create table brand
     name        varchar(64) not null,
     description varchar not null,
     is_active   boolean not null,
-    logo_id uuid null references image on delete set null
+    logo_id     uuid null references image on delete set null
 );
 
 create table brand_presenter_details
@@ -57,14 +57,24 @@ create table brand_presenter_invitation_token
     created_timestamp timestamp not null
 );
 
+create table employee_invitation_token
+(
+    token             varchar(73) primary key,
+    first_name        varchar(64) not null,
+    last_name         varchar(64) not null,
+    email             varchar(320) not null,
+    role              actor_role not null check (role in ('HR', 'MODERATOR', 'ADMINISTRATOR')),
+    created_timestamp timestamp not null
+);
+
 create table subject
 (
     id                uuid primary key,
     name              varchar(128) not null,
     description       varchar not null,
     brand_id          uuid not null references brand,
-    is_shown          boolean not null,
     primary_image_id  uuid null,
+    is_shown          boolean not null,
     created_timestamp timestamp not null
 );
 
@@ -160,8 +170,8 @@ create table review_comment
     review_id         uuid not null references review,
     author_id         uuid not null references actor,
     content           varchar not null,
-    created_timestamp timestamp not null,
     is_shown          boolean not null,
+    created_timestamp timestamp not null,
     upvotes_count     integer not null default 0 check (upvotes_count >= 0),
     downvotes_count   integer not null default 0 check (downvotes_count >= 0)
 );
@@ -236,14 +246,14 @@ $$
 begin
     perform check_1_reviewer_1_subject_1_review_with_is_shown_true(new.reviewer_id, new.subject_id);
 
-    if (old is not null and old.is_shown) then
+    if (not (old is null) and old.is_shown) then
         update subject_to_mark
         set count = count - 1
         where subject_to_mark.subject_id = old.subject_id
           and subject_to_mark.mark = old.mark;
     end if;
 
-    if (new is not null and new.is_shown) then
+    if (not (new is null) and new.is_shown) then
         update subject_to_mark
         set count = count + 1
         where subject_to_mark.subject_id = new.subject_id
@@ -264,7 +274,7 @@ execute procedure review_trigger();
 create or replace function review_vote_trigger() returns trigger as
 $$
 begin
-    if (old is not null) then
+    if (not (old is null)) then
         update review
         set upvotes_count   = case old.type
                                   when 'UP' then upvotes_count - 1
@@ -275,7 +285,7 @@ begin
         where review.id = old.review_id;
     end if;
 
-    if (new is not null) then
+    if (not (new is null)) then
         update review
         set upvotes_count   = case new.type
                                   when 'UP' then upvotes_count + 1
@@ -300,7 +310,7 @@ execute procedure review_vote_trigger();
 create or replace function review_comment_vote_trigger() returns trigger as
 $$
 begin
-    if (old is not null) then
+    if (not (old is null)) then
         update review_comment
         set upvotes_count   = case old.type
                                   when 'UP' then upvotes_count - 1
@@ -311,7 +321,7 @@ begin
         where review_comment.id = old.review_comment_id;
     end if;
 
-    if (new is not null) then
+    if (not (new is null)) then
         update review_comment
         set upvotes_count   = case new.type
                                   when 'UP' then upvotes_count + 1
@@ -336,13 +346,13 @@ execute procedure review_comment_vote_trigger();
 create or replace function subject_to_tag_trigger() returns trigger as
 $$
 begin
-    if (old is not null and (select is_shown from subject where subject.id = old.subject_id)) then
+    if (not (old is null) and (select is_shown from subject where subject.id = old.subject_id)) then
         update subject_tag
         set subjects_count = subjects_count - 1
         where id = old.tag_id;
     end if;
 
-    if (new is not null and (select is_shown from subject where subject.id = new.subject_id)) then
+    if (not (new is null) and (select is_shown from subject where subject.id = new.subject_id)) then
         update subject_tag
         set subjects_count = subjects_count + 1
         where id = new.tag_id;
@@ -373,21 +383,19 @@ begin
         return null;
     end if;
 
-    ----------
-
     if (old.is_shown = new.is_shown) then
         return null;
     end if;
 
     ----------
 
-    if (old is not null and old.is_shown) then
+    if (not (old is null) and old.is_shown) then
         update subject_tag
         set subjects_count = subjects_count - 1
         where id in (select tag_id from subject_to_tag where subject_id = old.id);
     end if;
 
-    if (new is not null and new.is_shown) then
+    if (not (new is null) and new.is_shown) then
         update subject_tag
         set subjects_count = subjects_count + 1
         where id in (select tag_id from subject_to_tag where subject_id = new.id);
