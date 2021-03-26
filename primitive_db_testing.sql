@@ -25,13 +25,13 @@ values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', null, tru
 select *
 from brand;
 
-insert into subject (id, name, description, brand_id, is_shown)
-values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true);
+insert into subject (id, name, description, brand_id, is_shown, created_timestamp)
+values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true, now());
 
 select *
 from subject_to_mark;
 
-insert into actor (id, first_name, last_name, email, role, password, created_timestamp, profile_image_id, is_active)
+insert into actor (id, first_name, last_name, email, role, password_hash, created_timestamp, profile_image_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'first_name', 'last_name', 'email', 'REVIEWER', 'password', now(), null,
         true);
 
@@ -52,6 +52,9 @@ delete
 from actor
 where id = 'a0000000-0000-0000-0000-000000000000';
 delete
+from subject_to_mark
+where subject_id = 'a0000000-0000-0000-0000-000000000000';
+delete
 from subject
 where id = 'a0000000-0000-0000-0000-000000000000';
 delete
@@ -63,9 +66,9 @@ where id = 'a0000000-0000-0000-0000-000000000000';
 --start: testing review triggers
 insert into brand (id, name, description, logo_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', null, true);
-insert into subject (id, name, description, brand_id, is_shown)
-values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true);
-insert into actor (id, first_name, last_name, email, role, password, created_timestamp, profile_image_id, is_active)
+insert into subject (id, name, description, brand_id, is_shown, created_timestamp)
+values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true, now());
+insert into actor (id, first_name, last_name, email, role, password_hash, created_timestamp, profile_image_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'first_name', 'last_name', 'email', 'REVIEWER', 'password', now(), null, true);
 
 select *
@@ -106,9 +109,17 @@ update review
 set mark = 1
 where id = 'a0000000-0000-0000-0000-000000000000';
 
+select *
+from subject_to_mark
+order by subject_id, mark;
+
 update review
 set is_shown = false
 where id = 'a0000000-0000-0000-0000-000000000000';
+
+select *
+from subject_to_mark
+order by subject_id, mark;
 
 delete
 from review
@@ -128,6 +139,9 @@ delete
 from actor
 where id = 'a0000000-0000-0000-0000-000000000000';
 delete
+from subject_to_mark
+where subject_id = 'a0000000-0000-0000-0000-000000000000';
+delete
 from subject
 where id = 'a0000000-0000-0000-0000-000000000000';
 delete
@@ -140,12 +154,12 @@ where id = 'a0000000-0000-0000-0000-000000000000';
 
 insert into brand (id, name, description, logo_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', null, true);
-insert into subject (id, name, description, brand_id, is_shown)
-values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true);
-insert into actor (id, first_name, last_name, email, role, password, created_timestamp, profile_image_id, is_active)
+insert into subject (id, name, description, brand_id, is_shown, created_timestamp)
+values ('a0000000-0000-0000-0000-000000000000', 'name', 'description', 'a0000000-0000-0000-0000-000000000000', true, now());
+insert into actor (id, first_name, last_name, email, role, password_hash, created_timestamp, profile_image_id, is_active)
 values ('a0000000-0000-0000-0000-000000000000', 'first_name', 'last_name', 'email', 'REVIEWER', 'password', now(), null,
         true);
-insert into actor (id, first_name, last_name, email, role, password, created_timestamp, profile_image_id, is_active)
+insert into actor (id, first_name, last_name, email, role, password_hash, created_timestamp, profile_image_id, is_active)
 values ('b0000000-0000-0000-0000-000000000000', 'first_name', 'last_name', 'newemail', 'REVIEWER', 'password', now(),
         null, true);
 insert into review (id, title, reviewer_id, subject_id, mark, is_shown, upvotes_count, downvotes_count)
@@ -166,6 +180,10 @@ values ('a0000000-0000-0000-0000-000000000000', 'b0000000-0000-0000-0000-0000000
 
 select *
 from review;
+
+insert into review_vote (review_id, reviewer_id, type)
+values ('a0000000-0000-0000-0000-000000000000', 'b0000000-0000-0000-0000-000000000000', 'DOWN')
+on conflict (review_id, reviewer_id) do update set type = 'DOWN';
 
 delete
 from review_vote
@@ -193,6 +211,9 @@ where id = 'b0000000-0000-0000-0000-000000000000';
 delete
 from actor
 where id = 'a0000000-0000-0000-0000-000000000000';
+delete
+from subject_to_mark
+where subject_id = 'a0000000-0000-0000-0000-000000000000';
 delete
 from subject
 where id = 'a0000000-0000-0000-0000-000000000000';
@@ -236,6 +257,10 @@ values ('a0000000-0000-0000-0000-000000000000', 'b0000000-0000-0000-0000-0000000
 select *
 from review_comment;
 
+insert into review_comment_vote (review_comment_id, reviewer_id, type)
+values ('a0000000-0000-0000-0000-000000000000', 'b0000000-0000-0000-0000-000000000000', 'DOWN')
+on conflict (review_comment_id, reviewer_id) do update set type = 'DOWN';
+
 delete
 from review_comment_vote
 where review_comment_id = 'a0000000-0000-0000-0000-000000000000'
@@ -264,6 +289,9 @@ where id = 'b0000000-0000-0000-0000-000000000000';
 delete
 from actor
 where id = 'a0000000-0000-0000-0000-000000000000';
+delete
+from subject_to_mark
+where subject_id = 'a0000000-0000-0000-0000-000000000000';
 delete
 from subject
 where id = 'a0000000-0000-0000-0000-000000000000';
@@ -305,6 +333,13 @@ where subject_id = 'a0000000-0000-0000-0000-000000000000'
 select *
 from subject_tag;
 
+update subject
+set is_shown = false
+where id = 'a0000000-0000-0000-0000-000000000000';
+
+select *
+from subject_tag;
+
 delete
 from subject_to_tag
 where subject_id = 'b0000000-0000-0000-0000-000000000000'
@@ -312,7 +347,11 @@ where subject_id = 'b0000000-0000-0000-0000-000000000000'
 
 delete
 from subject_tag
-where id = 'b0000000-0000-0000-0000-000000000000';
+where id = 'a0000000-0000-0000-0000-000000000000';
+delete
+from subject_to_mark
+where subject_id = 'a0000000-0000-0000-0000-000000000000'
+   or subject_id = 'b0000000-0000-0000-0000-000000000000';
 delete
 from subject
 where id = 'b0000000-0000-0000-0000-000000000000';
