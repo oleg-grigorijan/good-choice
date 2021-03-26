@@ -13,9 +13,9 @@ interface AuthRepository {
 class JooqAuthRepository(private val db: DSLContext) : AuthRepository {
 
     override fun getByEmailOrNull(email: String): AuthView? =
-        db.select(ACTOR.ID, ACTOR.ROLE, ACTOR.PASSWORD)
+        db.select(ACTOR.ID, ACTOR.ROLE, ACTOR.PASSWORD_HASH)
             .from(ACTOR)
             .where(ACTOR.EMAIL.eq(email))
             .fetchOne()
-            ?.map { AuthView(it[ACTOR.ID], email, it[ACTOR.ROLE].toUserRole(), it[ACTOR.PASSWORD]) }
+            ?.map { AuthView(it[ACTOR.ID], email, it[ACTOR.ROLE].toUserRole(), it[ACTOR.PASSWORD_HASH]) }
 }

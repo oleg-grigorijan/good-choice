@@ -30,7 +30,7 @@ class ReviewerRepository(private val db: DSLContext, private val clock: Clock) {
             .set(ACTOR.FIRST_NAME, firstName)
             .set(ACTOR.LAST_NAME, lastName)
             .set(ACTOR.ROLE, ActorRole.REVIEWER)
-            .set(ACTOR.PASSWORD, passwordHash)
+            .set(ACTOR.PASSWORD_HASH, passwordHash)
             .set(ACTOR.CREATED_TIMESTAMP, LocalDateTime.now(clock))
             .set(ACTOR.IS_ACTIVE, true)
             .execute()

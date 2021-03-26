@@ -1,5 +1,6 @@
 package com.goodchoice.rest.example
 
+import com.goodchoice.domain.auth.service.AuthContext
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus.OK
@@ -9,7 +10,7 @@ import java.util.*
 @RestController
 @RequestMapping("/example")
 @Tag(name = "example")
-class ExampleController {
+class ExampleController(private val auth: AuthContext) {
 
     @GetMapping("/hello")
     @ResponseStatus(OK)
@@ -23,6 +24,7 @@ class ExampleController {
     @PutMapping("/foo/{id}")
     @ResponseStatus(OK)
     @Operation(summary = "Casts a and b to integers")
-    fun foo(@PathVariable id: UUID, @RequestBody req: ExampleRequest) =
+    fun foo(@PathVariable id: UUID, @RequestBody req: ExampleRequest) {
         ExampleResponse(id, req.a.toIntOrNull(), req.b.toIntOrNull())
+    }
 }
