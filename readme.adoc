@@ -14,6 +14,12 @@ docker create `
   bitnami/postgresql:13.2.0-debian-10-r45
 ----
 
+=== Start database container
+
+----
+docker start good-choice-db-postgres
+----
+
 === Run application with `local` profile
 
 ----
