@@ -1,5 +1,6 @@
 package com.goodchoice.domain.auth.service
 
+import com.goodchoice.domain.auth.AuthenticationRequiredException
 import com.goodchoice.domain.auth.model.Auth
 import com.goodchoice.domain.auth.model.AuthWithCredentials
 import com.goodchoice.domain.auth.persistence.AuthRepository
@@ -11,10 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
-// TODO(#7): Nullability
 interface AuthContext {
 
+    val currentAuthOrNull: Auth?
     val currentAuth: Auth
+        get() = currentAuthOrNull ?: throw AuthenticationRequiredException()
 }
 
 interface AuthService : AuthContext {
@@ -30,13 +32,14 @@ class AuthServiceImpl(
     private val passwordEncoder: PasswordEncoder
 ) : AuthService {
 
-    override val currentAuth: Auth
-        get() = SecurityContextHolder.getContext().authentication.principal as Auth
+    override val currentAuthOrNull: Auth?
+        get() = SecurityContextHolder.getContext().authentication?.principal as? Auth
 
     @Transactional(readOnly = true)
     override fun existsByEmail(email: Email): Boolean =
         authRepo.existsByEmail(email)
 
+    @Transactional(readOnly = true)
     override fun getCredentialsByEmailOrNull(email: Email): AuthWithCredentials? =
         authRepo.getCredentialsByEmailOrNull(email)
 

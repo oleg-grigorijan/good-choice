@@ -10,7 +10,6 @@ plugins {
     id("org.flywaydb.flyway") version "7.7.0"
     id("nu.studer.jooq") version "5.2"
     kotlin("jvm") version "1.4.30"
-    kotlin("plugin.serialization") version "1.4.30"
     kotlin("plugin.spring") version "1.4.30"
 }
 
@@ -44,8 +43,11 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
     runtimeOnly("org.postgresql:postgresql")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
 

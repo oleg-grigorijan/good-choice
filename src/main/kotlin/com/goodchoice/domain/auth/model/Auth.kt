@@ -1,13 +1,16 @@
 package com.goodchoice.domain.auth.model
 
-import com.goodchoice.domain.common.UserRoleRequiredException
+import com.goodchoice.domain.auth.ConfirmedEmailRequiredException
+import com.goodchoice.domain.auth.UserRoleRequiredException
+import com.goodchoice.domain.common.model.Email
 import java.util.*
 
-// TODO(#7): Nullability
 interface Auth {
 
     val id: UUID
-    val email: String
+    val emailOrNull: Email?
+    val email: Email
+        get() = emailOrNull ?: throw ConfirmedEmailRequiredException()
     val role: UserRole
 }
 

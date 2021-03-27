@@ -28,7 +28,7 @@ class JooqAuthRepository(private val db: DSLContext) : AuthRepository {
             .from(ACTOR)
             .where(ACTOR.EMAIL.eq(email.address))
             .fetchOne()
-            ?.map { AuthWithCredentials(it[ACTOR.ID], email.address, it[ACTOR.ROLE].toUserRole(), it[ACTOR.PASSWORD_HASH]) }
+            ?.map { AuthWithCredentials(it[ACTOR.ID], email, it[ACTOR.ROLE].toUserRole(), it[ACTOR.PASSWORD_HASH]) }
 
     override fun updateEmailByUser(userId: UUID, email: Email) {
         db.update(ACTOR)
