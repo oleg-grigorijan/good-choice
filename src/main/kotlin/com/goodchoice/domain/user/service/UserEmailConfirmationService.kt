@@ -16,7 +16,7 @@ class UserEmailConfirmationServiceImpl(private val authService: AuthService) : U
 
     @Transactional
     override fun startConfirmationProcess(userId: UUID, email: Email) {
-        forbid(authService.existsByEmail(email)) { UserExistsByEmailException() }
+        forbid(authService.existsByEmail(email)) { UserExistsByEmailException(email.address) }
 
         // TODO(#10): Generate email confirmation token, send confirmation link to email
         authService.assignEmail(userId, email)

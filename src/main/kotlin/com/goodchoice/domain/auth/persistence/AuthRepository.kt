@@ -4,7 +4,6 @@ import com.goodchoice.domain.auth.model.AuthWithCredentials
 import com.goodchoice.domain.auth.model.toUserRole
 import com.goodchoice.domain.common.jooq.Tables.ACTOR
 import com.goodchoice.domain.common.model.Email
-import com.goodchoice.domain.common.verify
 import org.jooq.DSLContext
 import java.util.*
 
@@ -34,7 +33,7 @@ class JooqAuthRepository(private val db: DSLContext) : AuthRepository {
     override fun updateEmailByUser(userId: UUID, email: Email) {
         db.update(ACTOR)
             .set(ACTOR.EMAIL, email.address)
+            .where(ACTOR.ID.eq(userId))
             .execute()
-            .also { changedRecordsCount -> verify(changedRecordsCount == 1) { RuntimeException() } }
     }
 }

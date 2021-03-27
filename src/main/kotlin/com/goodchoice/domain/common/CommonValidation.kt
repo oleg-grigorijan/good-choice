@@ -9,10 +9,10 @@ fun forbid(condition: Boolean, exceptionSupplier: () -> Exception) {
 }
 
 fun validateSingleLineString(string: String, maxLength: Int? = null) {
-    forbid(string.contains("\n")) { StringSingleLineException() }
-    verify(string == string.trim()) { StringTrimException() }
-    forbid(string.contains("\\s\\s".toRegex())) { StringNormalizationException() }
+    forbid(string.contains("\n")) { StringSingleLineException(string) }
+    verify(string == string.trim()) { StringTrimException(string) }
+    forbid(string.contains("\\s\\s".toRegex())) { StringNormalizationException(string) }
     if (maxLength != null) {
-        verify(string.length <= maxLength) { StringMaxLengthException(actual = string.length, max = maxLength) }
+        verify(string.length <= maxLength) { StringMaxLengthException(string, maxLength = maxLength) }
     }
 }

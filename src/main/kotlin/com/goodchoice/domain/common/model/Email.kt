@@ -9,7 +9,7 @@ import com.goodchoice.domain.common.verify
 data class Email(@get:JsonValue val address: String) {
 
     init {
-        verify(address.count { it == '@' } == 1) { InvalidEmailException() }
+        verify(address.count { it == '@' } == 1) { InvalidEmailException(address) }
         validateSingleLineString(address, maxLength = EMAIL_MAX_LENGTH)
     }
 }

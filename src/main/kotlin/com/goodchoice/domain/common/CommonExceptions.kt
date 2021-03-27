@@ -1,30 +1,32 @@
 package com.goodchoice.domain.common
 
 import com.goodchoice.domain.auth.model.UserRole
+import org.springframework.http.HttpStatus.*
+import org.springframework.web.bind.annotation.ResponseStatus
 
+@ResponseStatus(INTERNAL_SERVER_ERROR)
 abstract class ApplicationException(
-    val messageKey: String,
     message: String? = null,
     cause: Throwable? = null
 ) : RuntimeException(message, cause)
 
+@ResponseStatus(BAD_REQUEST)
 abstract class FormatException(
-    messageKey: String,
     message: String? = null,
     cause: Throwable? = null
-) : ApplicationException(messageKey, message, cause)
+) : ApplicationException(message, cause)
 
-class StringMaxLengthException(val actual: Int, val max: Int) : FormatException("")
-class StringSingleLineException : FormatException("")
-class StringTrimException : FormatException("")
-class StringNormalizationException : FormatException("")
-class InvalidEmailException : FormatException("")
-class WeakPasswordException : FormatException("")
+class StringMaxLengthException(val string: String, val maxLength: Int) : FormatException()
+class StringSingleLineException(val string: String) : FormatException()
+class StringTrimException(val string: String) : FormatException()
+class StringNormalizationException(val string: String) : FormatException()
+class InvalidEmailException(val email: String) : FormatException()
+class PasswordMinLengthException(val minLength: Int) : FormatException()
 
+@ResponseStatus(FORBIDDEN)
 abstract class AuthenticationException(
-    messageKey: String,
     message: String? = null,
     cause: Throwable? = null
-) : ApplicationException(messageKey, message, cause)
+) : ApplicationException(message, cause)
 
-class UserRoleRequiredException(val actual: UserRole?, val expected: UserRole) : AuthenticationException("")
+class UserRoleRequiredException(val actual: UserRole?, val expected: UserRole) : AuthenticationException()
