@@ -9,19 +9,19 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:latest
+        image: bitnami/postgresql:13.2.0-debian-10-r45
         env:
-          POSTGRES_DB: good-choice
-          POSTGRES_USER: good-choice-user
-          POSTGRES_PASSWORD: good-choice-pass
+          POSTGRES_PASSWORD: postgres-pass
+          POSTGRES_INITDB_ARGS: --encoding=UTF8
         ports:
           - 5432:5432
-        # Set health checks to wait until postgres has started
+        volumes:
+          - ../../initdb:/docker-entrypoint-initdb.d
+          # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -29,12 +29,12 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v1
-      with:
-        java-version: 11
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew build

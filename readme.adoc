@@ -1,29 +1,38 @@
 = Good choice
 
-`docker create
---name good-choice-db-postgres
--e POSTGRES_PASSWORD=postgres-pass
--e POSTGRES_INITDB_ARGS="--encoding=UTF8"
--p 5432:5432
-bitnami/postgresql:12.6.0-debian-10-r1`
+== Local deployment
 
-Common commands:
-----
-create user "good-choice-user" password 'good-choice-pass';
-create database "good-choice";
-create database "good-choice-test";
-grant all on schema public to "good-choice-user";
+=== Create database container
 
-grant connect on database "good-choice-test" to "good-choice-user";
-grant connect on database "good-choice" to "good-choice-user";
 ----
-DB commands:
+docker create
+  --name good-choice-db-postgres
+  -e POSTGRES_PASSWORD=postgres-pass
+  -e POSTGRES_INITDB_ARGS="--encoding=UTF8"
+  -p 5432:5432
+  -v $pwd/initdb:/docker-entrypoint-initdb.d
+  bitnami/postgresql:13.2.0-debian-10-r45
 ----
 
-grant all privileges on all tables in schema public to "good-choice-user";
-grant all privileges on all sequences in schema public to "good-choice-user";
-grant all privileges on all functions in schema public to "good-choice-user";
+=== Run application with `local` profile
 
-create extension if not exists "uuid-ossp";
+----
+./gradlew bootRun --args="--spring.profiles.active=local"
+----
 
+Application will run on port `8080` by default.
+Swagger UI will be available at root path `/`.
+
+== Development
+
+=== Build application
+
+----
+./gradlew build -x test
+----
+
+=== Test application
+
+----
+./gradlew test
 ----

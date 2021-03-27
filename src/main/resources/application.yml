@@ -20,4 +20,4 @@ springdoc:
     operationsSorter: method
   show-login-endpoint: true
 
-server.port: ${PORT}
+server.port: ${PORT:443}
