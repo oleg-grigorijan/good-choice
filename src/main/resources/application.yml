@@ -4,9 +4,9 @@ spring:
 
   datasource:
     driver-class-name: 'org.postgresql.Driver'
-    url: '${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/good-choice}'
-    username: '${JDBC_DATABASE_USERNAME:good-choice-user}'
-    password: '${JDBC_DATABASE_PASSWORD:good-choice-pass}'
+    url: '${JDBC_DATABASE_URL}'
+    username: '${JDBC_DATABASE_USERNAME}'
+    password: '${JDBC_DATABASE_PASSWORD}'
 
   jooq.sql-dialect: postgres
 
@@ -19,3 +19,5 @@ springdoc:
     display-request-duration: true
     operationsSorter: method
   show-login-endpoint: true
+
+server.port: ${PORT}

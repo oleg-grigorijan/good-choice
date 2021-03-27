@@ -1,8 +1,7 @@
 package com.goodchoice.infra.config
 
-import com.goodchoice.domain.auth.model.SpringAuth
-import com.goodchoice.domain.auth.persistence.AuthRepository
-import org.springframework.context.annotation.Bean
+import com.goodchoice.domain.auth.service.AuthService
+import com.goodchoice.infra.security.AuthUserDetailsService
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod.GET
 import org.springframework.http.HttpMethod.POST
@@ -14,27 +13,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy.STATELESS
 import org.springframework.security.config.web.servlet.invoke
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig(private val authRepo: AuthRepository) : WebSecurityConfigurerAdapter() {
-
-    @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+class SecurityConfig(private val authService: AuthService) : WebSecurityConfigurerAdapter() {
 
     override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService(UserDetailsService { email ->
-            authRepo.getByEmailOrNull(email)
-                ?.let { SpringAuth(it.id, it.email, it.role, it.passwordHash) }
-                ?: throw UsernameNotFoundException(email)
-        })
+        auth.userDetailsService(AuthUserDetailsService(authService))
     }
 
     override fun configure(http: HttpSecurity) {
