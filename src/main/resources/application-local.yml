@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: 'jdbc:postgresql://localhost:5432/good-choice'
+    username: 'good-choice-user'
+    password: 'good-choice-pass'
+
+server.port: 8080

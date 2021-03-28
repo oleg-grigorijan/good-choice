@@ -9,5 +9,4 @@ class GoodChoiceApplicationTests {
 	@Test
 	fun contextLoads() {
 	}
-
 }

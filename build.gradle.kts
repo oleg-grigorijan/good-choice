@@ -9,8 +9,8 @@ plugins {
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.flywaydb.flyway") version "7.7.0"
     id("nu.studer.jooq") version "5.2"
-    kotlin("jvm") version "1.4.21"
-    kotlin("plugin.spring") version "1.4.21"
+    kotlin("jvm") version "1.4.30"
+    kotlin("plugin.spring") version "1.4.30"
 }
 
 group = "com.goodchoice"
@@ -18,20 +18,33 @@ version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 val dbDriver = "org.postgresql.Driver"
+
 val dbUrl = System.getenv("JDBC_DATABASE_URL") ?: "jdbc:postgresql://localhost:5432/good-choice"
 val dbUser = System.getenv("JDBC_DATABASE_USERNAME") ?: "good-choice-user"
 val dbPassword = System.getenv("JDBC_DATABASE_PASSWORD") ?: "good-choice-pass"
+
+val dbTestUrl = "jdbc:postgresql://localhost:5432/good-choice-test"
+val dbTestUser = "good-choice-user"
+val dbTestPassword = "good-choice-pass"
 
 repositories {
     mavenCentral()
 }
 
+val springdocVersion = "1.5.6"
+val jooqVersion = dependencyManagement.importedProperties["jooq.version"]
+
 dependencies {
     jooqGenerator("org.postgresql:postgresql")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("org.jooq:jooq-kotlin:${dependencyManagement.importedProperties["jooq.version"]}")
+    implementation("org.jooq:jooq-kotlin:$jooqVersion")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-security:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -51,7 +64,7 @@ flyway {
 }
 
 jooq {
-    version.set(dependencyManagement.importedProperties["jooq.version"])
+    version.set(jooqVersion)
     edition.set(JooqEdition.OSS)
 
     configurations {
@@ -74,6 +87,7 @@ jooq {
                     }
                     generate.apply {
                         isDeprecated = false
+                        isRecords = false
                         isNonnullAnnotation = true
                         nonnullAnnotationType = "org.jetbrains.annotations.NotNull"
                         isNullableAnnotation = true
@@ -90,19 +104,8 @@ jooq {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 tasks.withType<JooqGenerate> {
-    dependsOn(tasks.withType<FlywayMigrateTask>())
+    dependsOn(tasks.named<FlywayMigrateTask>("flywayMigrate"))
 
     inputs.files(fileTree("src/main/resources/db/migration"))
         .withPropertyName("migrations")
@@ -110,4 +113,25 @@ tasks.withType<JooqGenerate> {
 
     allInputsDeclared.set(true)
     outputs.cacheIf { true }
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjsr305=strict")
+        jvmTarget = "11"
+        allWarningsAsErrors = true
+    }
+}
+
+task<FlywayMigrateTask>("flywayMigrateTest") {
+    driver = dbDriver
+    url = dbTestUrl
+    user = dbTestUser
+    password = dbTestPassword
+}
+
+tasks.withType<Test> {
+    dependsOn(tasks.named<FlywayMigrateTask>("flywayMigrateTest"))
+
+    useJUnitPlatform()
 }
