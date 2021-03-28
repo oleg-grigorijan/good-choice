@@ -1,16 +1,31 @@
 package com.goodchoice.rest.brand
 
-import org.springframework.http.HttpStatus.OK
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
+import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/brands")
+@Tag(name = "brand")
 class BrandController {
 
-    @GetMapping("/brands")
-    @ResponseStatus(OK)
-    fun getAll(@RequestParam name: String?) =
-        "getAll"
+//    @GetMapping()
+//    @ResponseStatus(OK)
+//    fun getAll(@RequestParam name: String?) {
+//
+//    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @SecurityRequirements
+    @Operation(summary = "Add a new brand")
+    fun addBrand() {
+
+    }
 
 }
