@@ -3,3 +3,6 @@ spring:
     url: 'jdbc:postgresql://localhost:5432/good-choice-test'
     username: 'good-choice-user'
     password: 'good-choice-pass'
+
+good-choice:
+  email.mode: emulation

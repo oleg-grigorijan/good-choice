@@ -5,3 +5,11 @@ spring:
     password: 'good-choice-pass'
 
 server.port: 8080
+
+good-choice:
+  services:
+    webFrontend: 'http://localhost:4200'
+
+  email:
+    bot.name: 'GoodChoice Local Bot'
+    help.name: 'GoodChoice Local Help'

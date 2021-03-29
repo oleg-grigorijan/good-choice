@@ -34,3 +34,16 @@ springdoc:
   show-login-endpoint: true
 
 server.port: ${PORT:443}
+
+good-choice:
+  services:
+    webFrontend: '${GOOD_CHOICE_WEB_FRONTEND_URL}'
+
+  email:
+    mode: real
+    bot:
+      address: '${spring.mail.username}'
+      name: 'GoodChoice Bot'
+    help:
+      address: '${spring.mail.username}'
+      name: 'GoodChoice Help'
