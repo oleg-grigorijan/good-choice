@@ -11,6 +11,7 @@ plugins {
     id("nu.studer.jooq") version "5.2"
     kotlin("jvm") version "1.4.30"
     kotlin("plugin.spring") version "1.4.30"
+    kotlin("kapt") version "1.4.30"
 }
 
 group = "com.goodchoice"
@@ -51,11 +52,12 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.github.microutils:kotlin-logging-jvm:2.0.6")
 
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
