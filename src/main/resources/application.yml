@@ -11,10 +11,10 @@ spring:
   jooq.sql-dialect: 'postgres'
 
   mail:
-    host: '${MAIL_HOST:smtp.gmail.com}'
-    port: ${MAIL_PORT:587}
-    username: '${MAIL_USERNAME}'
-    password: '${MAIL_PASSWORD}'
+    host: '${EMAIL_HOST:smtp.gmail.com}'
+    port: ${EMAIL_PORT:587}
+    username: '${good-choice.email.bot.address}'
+    password: '${EMAIL_BOT_PASSWORD}'
     properties:
       mail:
         smtp:
@@ -39,8 +39,8 @@ good-choice:
   email:
     mode: 'real'
     bot:
-      address: '${spring.mail.username}'
+      address: '${EMAIL_BOT_ADDRESS}'
       name: 'GoodChoice Bot'
     help:
-      address: '${spring.mail.username}'
+      address: '${EMAIL_HELP_ADDRESS:${good-choice.email.bot.address}}'
       name: 'GoodChoice Help'
