@@ -39,8 +39,8 @@ good-choice:
   email:
     mode: 'real'
     bot:
-      address: '${EMAIL_BOT_ADDRESS}'
+      address: '${EMAIL_BOT_ADDRESS:goodchoice.bot@gmail.com}'
       name: 'GoodChoice Bot'
     help:
-      address: '${EMAIL_HELP_ADDRESS:${good-choice.email.bot.address}}'
+      address: '${EMAIL_HELP_ADDRESS:goodchoice.help@gmail.com}'
       name: 'GoodChoice Help'

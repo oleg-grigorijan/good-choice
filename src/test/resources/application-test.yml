@@ -5,7 +5,4 @@ spring:
     password: 'good-choice-pass'
 
 good-choice:
-  email:
-    mode: 'emulation'
-    bot.address: 'emulation.bot@emulation.com'
-    help.address: 'emulation.help@emulation.com'
+  email.mode: 'emulation'

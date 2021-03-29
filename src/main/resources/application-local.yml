@@ -9,5 +9,9 @@ server.port: 8080
 good-choice:
   email:
     mode: 'emulation'
-    bot.name: 'GoodChoice Local Bot'
-    help.name: 'GoodChoice Local Help'
+    bot:
+      name: 'GoodChoice Local Bot'
+      address: 'goodchoice.bot.local@gmail.com'
+    help:
+      name: 'GoodChoice Local Help'
+      address: 'goodchoice.help.local@gmail.com'
