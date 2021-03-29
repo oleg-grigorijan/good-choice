@@ -29,6 +29,8 @@ val dbTestPassword = "good-choice-pass"
 
 repositories {
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven")
+    maven("https://dl.bintray.com/kotlin/kotlin-js-wrappers")
 }
 
 val springdocVersion = "1.5.6"
@@ -39,15 +41,19 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.jooq:jooq-kotlin:$jooqVersion")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-security:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.3")
+    implementation("org.jetbrains:kotlin-css:1.0.0-pre.60-kotlin-1.3.0")
+    implementation("org.jetbrains:kotlin-css-jvm:1.0.0-pre.59-kotlin-1.3.0")
+
 
     runtimeOnly("org.postgresql:postgresql")
 
