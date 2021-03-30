@@ -1,18 +1,17 @@
 package com.goodchoice.rest.brand
 
+import com.goodchoice.domain.brand.model.BrandModification
+import com.goodchoice.domain.brand.service.BrandService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/brands")
 @Tag(name = "brand")
-class BrandController {
+class BrandController(private val brandService: BrandService) {
 
 //    @GetMapping()
 //    @ResponseStatus(OK)
@@ -24,7 +23,7 @@ class BrandController {
     @ResponseStatus(HttpStatus.CREATED)
     @SecurityRequirements
     @Operation(summary = "Add a new brand")
-    fun addBrand() {
+    fun createBrand(@RequestBody request: BrandModification) {
 
     }
 
