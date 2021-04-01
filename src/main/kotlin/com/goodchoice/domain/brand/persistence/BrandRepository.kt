@@ -27,7 +27,11 @@ class BrandJooqRepository(private val db: DSLContext) : BrandRepository {
     }
 
     override fun update(id: UUID, name: String, description: String) {
-        TODO("Not yet implemented")
+        db.update(Tables.BRAND)
+            .set(Tables.BRAND.NAME, name)
+            .set(Tables.BRAND.DESCRIPTION, description)
+            .where(Tables.BRAND.ID.eq(id))
+            .execute()
     }
 
     override fun getAllPreviews(): List<BrandPreview> {
