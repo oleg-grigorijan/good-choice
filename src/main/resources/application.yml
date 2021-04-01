@@ -8,16 +8,39 @@ spring:
     username: '${JDBC_DATABASE_USERNAME}'
     password: '${JDBC_DATABASE_PASSWORD}'
 
-  jooq.sql-dialect: postgres
+  jooq.sql-dialect: 'postgres'
+
+  mail:
+    host: '${EMAIL_HOST:smtp.gmail.com}'
+    port: ${EMAIL_PORT:587}
+    username: '${good-choice.email.bot.address}'
+    password: '${EMAIL_BOT_PASSWORD}'
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+          connectiontimeout: 5000
+          writetimeout: 5000
 
 springdoc:
   packages-to-scan: 'com.goodchoice.rest'
   api-docs:
-    path: /docs
+    path: '/docs'
   swagger-ui:
-    path: /
+    path: '/'
     display-request-duration: true
-    operationsSorter: method
+    operationsSorter: 'method'
   show-login-endpoint: true
 
 server.port: ${PORT:443}
+
+good-choice:
+  email:
+    mode: 'real'
+    bot:
+      address: '${EMAIL_BOT_ADDRESS:goodchoice.bot@gmail.com}'
+      name: 'GoodChoice Bot'
+    help:
+      address: '${EMAIL_HELP_ADDRESS:goodchoice.help@gmail.com}'
+      name: 'GoodChoice Help'

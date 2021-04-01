@@ -5,3 +5,13 @@ spring:
     password: 'good-choice-pass'
 
 server.port: 8080
+
+good-choice:
+  email:
+    mode: 'emulation'
+    bot:
+      name: 'GoodChoice Local Bot'
+      address: 'goodchoice.bot.local@gmail.com'
+    help:
+      name: 'GoodChoice Local Help'
+      address: 'goodchoice.help.local@gmail.com'
