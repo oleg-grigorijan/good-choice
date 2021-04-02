@@ -10,7 +10,7 @@ import java.util.*
 interface BrandRepository {
     fun create(name: String, description: String): UUID
     fun update(id: UUID, name: String, description: String)
-    fun getAllPreviews(): List<BrandPreview>
+    fun getPreviewsByQuery(query: String, limit: Int, offset: Int): List<BrandPreview>
     fun getById(id: UUID): Brand
 }
 
@@ -34,10 +34,13 @@ class BrandJooqRepository(private val db: DSLContext) : BrandRepository {
             .execute()
     }
 
-    override fun getAllPreviews(): List<BrandPreview> {
+    override fun getPreviewsByQuery(query: String, limit: Int, offset: Int): List<BrandPreview> {
         return db.select(Tables.BRAND.ID, Tables.BRAND.NAME)
             .from(Tables.BRAND)
             .where(Tables.BRAND.IS_ACTIVE.eq(true))
+            .and(Tables.BRAND.NAME.like("%$query%"))
+            .limit(limit)
+            .offset(offset)
             .fetch()
             .map { BrandPreview(it[Tables.BRAND.ID], it[Tables.BRAND.NAME]) }
     }

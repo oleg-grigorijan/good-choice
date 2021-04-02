@@ -1,8 +1,6 @@
 package com.goodchoice.rest.brand
 
-import com.goodchoice.domain.brand.model.Brand
-import com.goodchoice.domain.brand.model.BrandCreationResponse
-import com.goodchoice.domain.brand.model.BrandModificationRequest
+import com.goodchoice.domain.brand.model.*
 import com.goodchoice.domain.brand.service.BrandService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirements
@@ -37,7 +35,7 @@ class BrandController(private val brandService: BrandService) {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @SecurityRequirements
-    @Operation(summary = "Add a new brand")
+    @Operation(summary = "Editing brad")
     fun edit(
         @PathVariable(value = "id") id: UUID,
         @RequestBody request: BrandModificationRequest
@@ -45,5 +43,17 @@ class BrandController(private val brandService: BrandService) {
         brandService.edit(id, request)
     }
 
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    @SecurityRequirements
+    @Operation(summary = "Get brand by id")
+    fun getPreviewsByQuery(
+        @RequestParam query: String,
+        @RequestParam limit: Int,
+        @RequestParam offset: Int,
+    ): List<BrandPreview> {
+        return brandService.getPreviewsByQuery(BrandQueryRequest(query, limit, offset))
+    }
 
 }
