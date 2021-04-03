@@ -25,6 +25,7 @@ class BrandServiceImpl(
 
     @Transactional
     override fun create(request: BrandModificationRequest): UUID {
+        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
         return brandRepo.create(
             request.name,
             request.description
@@ -38,6 +39,7 @@ class BrandServiceImpl(
 
     @Transactional
     override fun edit(id: UUID, request: BrandModificationRequest) {
+        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
         brandRepo.update(
             id,
             request.name,
@@ -47,7 +49,6 @@ class BrandServiceImpl(
 
     @Transactional
     override fun getPreviewsByQuery(queryRequest: BrandQueryRequest): List<BrandPreview> {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
         return brandRepo.getPreviewsByQuery(queryRequest.query, queryRequest.limit, queryRequest.offset)
     }
 }
