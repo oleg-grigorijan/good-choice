@@ -11,6 +11,7 @@ plugins {
     id("nu.studer.jooq") version "5.2"
     kotlin("jvm") version "1.4.30"
     kotlin("plugin.spring") version "1.4.30"
+    kotlin("kapt") version "1.4.30"
 }
 
 group = "com.goodchoice"
@@ -38,20 +39,25 @@ dependencies {
     jooqGenerator("org.postgresql:postgresql")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.jooq:jooq-kotlin:$jooqVersion")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springdoc:springdoc-openapi-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-security:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-kotlin:$springdocVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.0.6")
 
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
