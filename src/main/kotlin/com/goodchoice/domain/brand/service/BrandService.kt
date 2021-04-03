@@ -1,5 +1,8 @@
 package com.goodchoice.domain.brand.service
 
+import com.goodchoice.domain.auth.model.UserRole
+import com.goodchoice.domain.auth.model.requireRole
+import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.brand.model.Brand
 import com.goodchoice.domain.brand.model.BrandModificationRequest
 import com.goodchoice.domain.brand.model.BrandPreview
@@ -16,7 +19,8 @@ interface BrandService {
 }
 
 class BrandServiceImpl(
-    private val brandRepo: BrandRepository
+    private val brandRepo: BrandRepository,
+    private val authService: AuthService
 ) : BrandService {
 
     @Transactional
@@ -43,6 +47,7 @@ class BrandServiceImpl(
 
     @Transactional
     override fun getPreviewsByQuery(queryRequest: BrandQueryRequest): List<BrandPreview> {
+        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
         return brandRepo.getPreviewsByQuery(queryRequest.query, queryRequest.limit, queryRequest.offset)
     }
 }

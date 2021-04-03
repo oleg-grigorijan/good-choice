@@ -16,7 +16,6 @@ class BrandController(private val brandService: BrandService) {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @ResponseBody
     @SecurityRequirements
     @Operation(summary = "Add a new brand")
     fun createBrand(@RequestBody request: BrandModificationRequest): BrandCreationResponse {
@@ -25,8 +24,6 @@ class BrandController(private val brandService: BrandService) {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @SecurityRequirements
     @Operation(summary = "Get brand by id")
     fun getById(@PathVariable(value = "id") id: UUID): Brand {
         return brandService.getById(id)
@@ -45,9 +42,7 @@ class BrandController(private val brandService: BrandService) {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @ResponseBody
-    @SecurityRequirements
-    @Operation(summary = "Get brand by id")
+    @Operation(summary = "Get brand previews by query")
     fun getPreviewsByQuery(
         @RequestParam query: String,
         @RequestParam limit: Int,
