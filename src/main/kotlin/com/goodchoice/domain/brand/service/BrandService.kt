@@ -1,7 +1,5 @@
 package com.goodchoice.domain.brand.service
 
-import com.goodchoice.domain.auth.model.UserRole
-import com.goodchoice.domain.auth.model.requireRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.brand.model.Brand
 import com.goodchoice.domain.brand.model.BrandModificationRequest
@@ -25,7 +23,6 @@ class BrandServiceImpl(
 
     @Transactional
     override fun create(request: BrandModificationRequest): UUID {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
         return brandRepo.create(
             request.name,
             request.description
@@ -39,7 +36,6 @@ class BrandServiceImpl(
 
     @Transactional
     override fun edit(id: UUID, request: BrandModificationRequest) {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
         brandRepo.update(
             id,
             request.name,
