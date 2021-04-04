@@ -33,5 +33,5 @@ abstract class PageInfoException(
     cause: Throwable? = null
 ) : ApplicationException(message, cause)
 
-class PageOffsetNegativeException() : PageInfoException()
-class PageLimitNegativeException() : PageInfoException()
+class PageOffsetNegativeException(val offset: Int) : PageInfoException()
+class PageLimitNegativeException(val limit: Int) : PageInfoException()

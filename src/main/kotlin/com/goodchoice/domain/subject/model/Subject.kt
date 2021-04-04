@@ -1,14 +1,16 @@
 package com.goodchoice.domain.subject.model
 
 import com.goodchoice.StringMaxLength
-import com.goodchoice.domain.common.model.Reference
+import com.goodchoice.domain.brand.model.BrandPreview
 import com.goodchoice.domain.common.validateSingleLineString
+import java.util.*
 
-class SubjectModificationRequest(
+data class Subject(
+    val id: UUID,
     val name: String,
-    val description: String,
-    val brand: Reference,
-    val tags: List<Reference>
+    val brand: BrandPreview,
+    val summary: SubjectSummary,
+    val description: String
 ) {
     init {
         validateSingleLineString(name, StringMaxLength.MEDIUM)
