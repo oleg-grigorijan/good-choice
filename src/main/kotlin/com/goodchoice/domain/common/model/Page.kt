@@ -1,6 +1,6 @@
 package com.goodchoice.domain.common.model
 
-import com.goodchoice.domain.common.PageNumberNegativeException
+import com.goodchoice.domain.common.PageOffsetNegativeException
 
 data class Page<T>(
     val offset: Int,
@@ -9,8 +9,8 @@ data class Page<T>(
 ) {
     init {
         if (offset < 0)
-            throw PageNumberNegativeException()
+            throw PageOffsetNegativeException()
     }
 
-    var limit: Int = items.size
+    val limit: Int = items.size
 }

@@ -1,12 +1,12 @@
 package com.goodchoice.rest.brand
 
 import com.goodchoice.domain.brand.model.Brand
-import com.goodchoice.domain.brand.model.BrandCreationResponse
 import com.goodchoice.domain.brand.model.BrandModificationRequest
 import com.goodchoice.domain.brand.model.BrandPreview
 import com.goodchoice.domain.brand.service.BrandService
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
+import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.infra.swagger.RequireSecurity
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -23,34 +23,30 @@ class BrandController(private val brandService: BrandService) {
     @ResponseStatus(HttpStatus.CREATED)
     @RequireSecurity
     @Operation(summary = "Add a new brand")
-    fun createBrand(@RequestBody request: BrandModificationRequest): BrandCreationResponse {
-        return BrandCreationResponse(brandService.create(request))
-    }
+    fun createBrand(@RequestBody request: BrandModificationRequest): Reference =
+        brandService.create(request)
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get brand by id")
-    fun getById(@PathVariable id: UUID): Brand {
-        return brandService.getById(id)
-    }
+    fun getById(@PathVariable id: UUID): Brand =
+        brandService.getById(id)
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @RequireSecurity
     @Operation(summary = "Editing brad")
-    fun edit(
-        @PathVariable id: UUID, @RequestBody request: BrandModificationRequest
-    ) {
+    fun edit(@PathVariable id: UUID, @RequestBody request: BrandModificationRequest) =
         brandService.update(id, request)
-    }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get brand previews by query")
     fun getAllPreviewsByQuery(
-        @RequestParam query: String, @RequestParam limit: Int, @RequestParam offset: Int,
-    ): Page<BrandPreview> {
-        return brandService.getAllPreviewsByQuery(query = query, PageRequest(offset = offset, limit = limit))
-    }
+        @RequestParam query: String,
+        @RequestParam limit: Int,
+        @RequestParam offset: Int
+    ): Page<BrandPreview> =
+        brandService.getAllPreviewsByQuery(query = query, PageRequest(offset = offset, limit = limit))
 
 }

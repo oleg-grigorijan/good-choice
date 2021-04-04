@@ -1,7 +1,7 @@
 package com.goodchoice.domain.common.model
 
-import com.goodchoice.domain.common.PageNumberNegativeException
-import com.goodchoice.domain.common.PageSizeNegativeException
+import com.goodchoice.domain.common.PageLimitNegativeException
+import com.goodchoice.domain.common.PageOffsetNegativeException
 
 data class PageRequest(
     val offset: Int,
@@ -9,9 +9,9 @@ data class PageRequest(
 ) {
     init {
         if (offset < 0)
-            throw PageNumberNegativeException()
+            throw PageOffsetNegativeException()
 
         if (limit < 0)
-            throw PageSizeNegativeException()
+            throw PageLimitNegativeException()
     }
 }
