@@ -25,3 +25,13 @@ class StringNormalizationException(val string: String) : FormatException()
 class InvalidEmailException(val email: String) : FormatException()
 
 class PasswordMinLengthException(val minLength: Int) : FormatException()
+
+
+@ResponseStatus(BAD_REQUEST)
+abstract class PageInfoException(
+    message: String? = null,
+    cause: Throwable? = null
+) : ApplicationException(message, cause)
+
+class PageOffsetNegativeException() : PageInfoException()
+class PageLimitNegativeException() : PageInfoException()
