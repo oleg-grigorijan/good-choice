@@ -3,15 +3,18 @@ package com.goodchoice.domain.user.persistence
 import com.goodchoice.domain.common.jooq.Tables.ACTOR
 import com.goodchoice.domain.common.jooq.enums.ActorRole
 import org.jooq.DSLContext
-import org.springframework.stereotype.Repository
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.*
 
-@Repository
-class ReviewerRepository(private val db: DSLContext, private val clock: Clock) {
+interface ReviewerRepository {
 
-    fun create(firstName: String, lastName: String, passwordHash: String): UUID {
+    fun create(firstName: String, lastName: String, passwordHash: String): UUID
+}
+
+class JooqReviewerRepository(private val db: DSLContext, private val clock: Clock) : ReviewerRepository {
+
+    override fun create(firstName: String, lastName: String, passwordHash: String): UUID {
         val id = UUID.randomUUID()
         db.insertInto(ACTOR)
             .set(ACTOR.ID, id)

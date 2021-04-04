@@ -7,4 +7,4 @@ import kotlin.annotation.AnnotationTarget.*
 @Target(FUNCTION, TYPE, ANNOTATION_CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @SecurityRequirements(SecurityRequirement(name = "basic-auth"))
-annotation class RequireSecurity()
+annotation class RequireSecurity

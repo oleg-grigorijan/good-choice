@@ -1,4 +1,4 @@
-package com.goodchoice.rest.reviewer
+package com.goodchoice.rest.user
 
 import com.goodchoice.domain.user.model.ReviewerRegistrationRequest
 import com.goodchoice.domain.user.service.ReviewerSelfService
@@ -8,9 +8,9 @@ import org.springframework.http.HttpStatus.CREATED
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/reviewers")
+@RequestMapping("/reviewers/self")
 @Tag(name = "reviewer")
-class ReviewerController(private val reviewerSelfService: ReviewerSelfService) {
+class ReviewerSelfController(private val reviewerSelfService: ReviewerSelfService) {
 
     @PostMapping
     @ResponseStatus(CREATED)
