@@ -36,6 +36,14 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                 authorize(GET, "/docs/swagger-config", permitAll)
 
                 authorize(POST, "/reviewers", permitAll)
+
+                //Brands
+//                authorize(GET, "/brands", permitAll)
+//                authorize(GET, "/brands/*", permitAll)
+//                authorize(PUT, "/brands", authenticated)
+//                authorize(POST, "/brands", authenticated)
+
+
                 authorize("/**", authenticated)
             }
             httpBasic {

@@ -4,6 +4,7 @@ import com.goodchoice.domain.brand.model.Brand
 import com.goodchoice.domain.brand.model.BrandPreview
 import com.goodchoice.domain.common.jooq.Tables.BRAND
 import com.goodchoice.domain.common.model.Page
+import com.goodchoice.domain.common.model.PageRequest
 import org.jooq.DSLContext
 import java.util.*
 
@@ -11,7 +12,7 @@ import java.util.*
 interface BrandRepository {
     fun create(name: String, description: String): UUID
     fun update(id: UUID, name: String, description: String)
-    fun getAllPreviewsByQuery(query: String, limit: Int, offset: Int): Page<BrandPreview>
+    fun getAllPreviewsByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview>
     fun getByIdOrNull(id: UUID): Brand?
 }
 
@@ -35,13 +36,15 @@ class BrandJooqRepository(private val db: DSLContext) : BrandRepository {
             .execute()
     }
 
-    override fun getAllPreviewsByQuery(query: String, limit: Int, offset: Int): Page<BrandPreview> {
+    override fun getAllPreviewsByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview> {
+        val limit = pageRequest.limit
+        val offset = pageRequest.offset
         var hasNext = false
         val items = db.select(BRAND.ID, BRAND.NAME)
             .from(BRAND)
             .where(
                 BRAND.IS_ACTIVE.eq(true)
-                    .and(BRAND.NAME.likeIgnoreCase("%$query%"))
+                    .and(BRAND.NAME.like("%$query%"))
             )
             .limit(limit + 1)
             .offset(offset)

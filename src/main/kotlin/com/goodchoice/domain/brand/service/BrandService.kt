@@ -48,8 +48,7 @@ class BrandServiceImpl(
     override fun getAllPreviewsByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview> {
         return brandRepo.getAllPreviewsByQuery(
             query = query,
-            limit = pageRequest.limit,
-            offset = pageRequest.offset
+            pageRequest = pageRequest
         )
     }
 }

@@ -47,10 +47,10 @@ class BrandController(private val brandService: BrandService) {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get brand previews by query")
-    fun getPreviewsByQuery(
+    fun getAllPreviewsByQuery(
         @RequestParam query: String, @RequestParam limit: Int, @RequestParam offset: Int,
     ): Page<BrandPreview> {
-        return brandService.getAllPreviewsByQuery(query, PageRequest(limit, offset))
+        return brandService.getAllPreviewsByQuery(query = query, PageRequest(offset = offset, limit = limit))
     }
 
 }
