@@ -1,7 +1,7 @@
 package com.goodchoice.domain.common.model
 
 import com.goodchoice.domain.common.PageOffsetNegativeException
-import com.goodchoice.domain.common.verify
+import com.goodchoice.domain.common.forbid
 
 data class Page<T>(
     val offset: Int,
@@ -9,7 +9,7 @@ data class Page<T>(
     val hasNext: Boolean
 ) {
     init {
-        verify(offset < 0) { PageOffsetNegativeException() }
+        forbid(offset < 0) { PageOffsetNegativeException() }
     }
 
     val limit: Int

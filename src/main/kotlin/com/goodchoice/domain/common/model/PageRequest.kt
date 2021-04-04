@@ -2,14 +2,14 @@ package com.goodchoice.domain.common.model
 
 import com.goodchoice.domain.common.PageLimitNegativeException
 import com.goodchoice.domain.common.PageOffsetNegativeException
-import com.goodchoice.domain.common.verify
+import com.goodchoice.domain.common.forbid
 
 data class PageRequest(
     val offset: Int,
     val limit: Int
 ) {
     init {
-        verify(offset < 0) { PageOffsetNegativeException() }
-        verify(limit < 0) { PageLimitNegativeException() }
+        forbid(offset < 0) { PageOffsetNegativeException() }
+        forbid(limit < 0) { PageLimitNegativeException() }
     }
 }
