@@ -9,8 +9,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @OpenAPIDefinition(
-    info = Info(title = "Good Choice API"),
-    security = []
+    info = Info(title = "Good Choice API")
 )
 @SecurityScheme(
     name = "basic-auth",
