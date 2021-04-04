@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/reviewers/self")
-@Tag(name = "reviewer")
+@Tag(name = "reviewer-self")
 class ReviewerSelfController(private val reviewerSelfService: ReviewerSelfService) {
 
     @PostMapping

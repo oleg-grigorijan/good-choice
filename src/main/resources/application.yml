@@ -30,7 +30,7 @@ springdoc:
   swagger-ui:
     path: '/'
     display-request-duration: true
-    operationsSorter: 'method'
+    operationsSorter: 'alpha'
   show-login-endpoint: true
 
 server.port: ${PORT:443}

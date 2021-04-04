@@ -11,15 +11,20 @@ data class EmployeeInvitation(
     val id: UUID,
     val email: Email,
     val role: UserRole,
-    override val suggestedFirstName: String,
-    override val suggestedLastName: String,
+    val suggestedFirstName: String,
+    val suggestedLastName: String,
     val expiredTimestamp: LocalDateTime,
-) : EmployeeInvitationSelfView {
+) {
 
     fun isExpired(clock: Clock) = expiredTimestamp <= now(clock)
 }
 
-interface EmployeeInvitationSelfView {
-    val suggestedFirstName: String
-    val suggestedLastName: String
-}
+data class EmployeeInvitationSelfView(
+    val suggestedFirstName: String,
+    val suggestedLastName: String,
+)
+
+fun EmployeeInvitation.toSelfView() = EmployeeInvitationSelfView(
+    suggestedFirstName = suggestedFirstName,
+    suggestedLastName = suggestedLastName,
+)
