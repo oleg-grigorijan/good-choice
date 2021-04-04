@@ -2,7 +2,6 @@ package com.goodchoice.domain.brand.model
 
 import java.util.*
 
-class BrandCreationResponse(
+data class BrandCreationResponse(
     val id: UUID
-) {
-}
+)

@@ -2,8 +2,7 @@ package com.goodchoice.domain.brand.model
 
 import java.util.*
 
-class BrandPreview(
+data class BrandPreview(
     val id: UUID,
     val name: String,
-) {
-}
+)

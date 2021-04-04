@@ -4,16 +4,17 @@ import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.brand.model.Brand
 import com.goodchoice.domain.brand.model.BrandModificationRequest
 import com.goodchoice.domain.brand.model.BrandPreview
-import com.goodchoice.domain.brand.model.BrandQueryRequest
 import com.goodchoice.domain.brand.persistence.BrandRepository
+import com.goodchoice.domain.common.model.Page
+import com.goodchoice.domain.common.model.PageRequest
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 interface BrandService {
     fun create(request: BrandModificationRequest): UUID
     fun getById(id: UUID): Brand
-    fun edit(id: UUID, request: BrandModificationRequest)
-    fun getPreviewsByQuery(queryRequest: BrandQueryRequest): List<BrandPreview>
+    fun update(id: UUID, request: BrandModificationRequest)
+    fun getAllPreviewsByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview>
 }
 
 class BrandServiceImpl(
@@ -24,27 +25,31 @@ class BrandServiceImpl(
     @Transactional
     override fun create(request: BrandModificationRequest): UUID {
         return brandRepo.create(
-            request.name,
-            request.description
+            name = request.name,
+            description = request.description
         )
     }
 
     @Transactional
     override fun getById(id: UUID): Brand {
-        return brandRepo.getById(id)
+        return brandRepo.getByIdOrNull(id) ?: throw RuntimeException()
     }
 
     @Transactional
-    override fun edit(id: UUID, request: BrandModificationRequest) {
+    override fun update(id: UUID, request: BrandModificationRequest) {
         brandRepo.update(
-            id,
-            request.name,
-            request.description
+            id = id,
+            name = request.name,
+            description = request.description
         )
     }
 
     @Transactional
-    override fun getPreviewsByQuery(queryRequest: BrandQueryRequest): List<BrandPreview> {
-        return brandRepo.getPreviewsByQuery(queryRequest.query, queryRequest.limit, queryRequest.offset)
+    override fun getAllPreviewsByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview> {
+        return brandRepo.getAllPreviewsByQuery(
+            query = query,
+            limit = pageRequest.limit,
+            offset = pageRequest.offset
+        )
     }
 }

@@ -1,9 +1,14 @@
 package com.goodchoice.rest.brand
 
-import com.goodchoice.domain.brand.model.*
+import com.goodchoice.domain.brand.model.Brand
+import com.goodchoice.domain.brand.model.BrandCreationResponse
+import com.goodchoice.domain.brand.model.BrandModificationRequest
+import com.goodchoice.domain.brand.model.BrandPreview
 import com.goodchoice.domain.brand.service.BrandService
+import com.goodchoice.domain.common.model.Page
+import com.goodchoice.domain.common.model.PageRequest
+import com.goodchoice.infra.swagger.RequireSecurity
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -16,7 +21,7 @@ class BrandController(private val brandService: BrandService) {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @SecurityRequirements
+    @RequireSecurity
     @Operation(summary = "Add a new brand")
     fun createBrand(@RequestBody request: BrandModificationRequest): BrandCreationResponse {
         return BrandCreationResponse(brandService.create(request))
@@ -25,30 +30,27 @@ class BrandController(private val brandService: BrandService) {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get brand by id")
-    fun getById(@PathVariable(value = "id") id: UUID): Brand {
+    fun getById(@PathVariable id: UUID): Brand {
         return brandService.getById(id)
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @SecurityRequirements
+    @RequireSecurity
     @Operation(summary = "Editing brad")
     fun edit(
-        @PathVariable(value = "id") id: UUID,
-        @RequestBody request: BrandModificationRequest
+        @PathVariable id: UUID, @RequestBody request: BrandModificationRequest
     ) {
-        brandService.edit(id, request)
+        brandService.update(id, request)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get brand previews by query")
     fun getPreviewsByQuery(
-        @RequestParam query: String,
-        @RequestParam limit: Int,
-        @RequestParam offset: Int,
-    ): List<BrandPreview> {
-        return brandService.getPreviewsByQuery(BrandQueryRequest(query, limit, offset))
+        @RequestParam query: String, @RequestParam limit: Int, @RequestParam offset: Int,
+    ): Page<BrandPreview> {
+        return brandService.getAllPreviewsByQuery(query, PageRequest(limit, offset))
     }
 
 }

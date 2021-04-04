@@ -2,8 +2,8 @@ package com.goodchoice.rest.reviewer
 
 import com.goodchoice.domain.user.model.ReviewerRegistrationRequest
 import com.goodchoice.domain.user.service.ReviewerSelfService
+import com.goodchoice.infra.swagger.RequireSecurity
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.web.bind.annotation.*
@@ -15,7 +15,7 @@ class ReviewerController(private val reviewerSelfService: ReviewerSelfService) {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    @SecurityRequirements
+    @RequireSecurity
     @Operation(summary = "Register reviewer")
     fun register(@RequestBody request: ReviewerRegistrationRequest) = reviewerSelfService.register(request)
 }
