@@ -1,5 +1,7 @@
 package com.goodchoice.domain.brand.service
 
+import com.goodchoice.domain.auth.model.UserRole
+import com.goodchoice.domain.auth.model.requireRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.brand.model.Brand
 import com.goodchoice.domain.brand.model.BrandModificationRequest
@@ -24,23 +26,28 @@ class BrandServiceImpl(
 ) : BrandService {
 
     @Transactional
-    override fun create(request: BrandModificationRequest): Reference =
-        brandRepo.create(
+    override fun create(request: BrandModificationRequest): Reference {
+        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        return brandRepo.create(
             name = request.name,
             description = request.description
         )
+    }
+
 
     @Transactional
     override fun getById(id: UUID): Brand =
         brandRepo.getByIdOrNull(id) ?: throw RuntimeException()
 
     @Transactional
-    override fun update(id: UUID, request: BrandModificationRequest) =
-        brandRepo.update(
+    override fun update(id: UUID, request: BrandModificationRequest) {
+        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        return brandRepo.update(
             id = id,
             name = request.name,
             description = request.description
         )
+    }
 
     @Transactional
     override fun getAllPreviewsByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview> =

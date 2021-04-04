@@ -40,7 +40,6 @@ class BrandJooqRepository(private val db: DSLContext) : BrandRepository {
     override fun getAllPreviewsByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview> {
         val limit = pageRequest.limit
         val offset = pageRequest.offset
-        var hasNext = false
         val items = db.select(BRAND.ID, BRAND.NAME)
             .from(BRAND)
             .where(
@@ -51,6 +50,7 @@ class BrandJooqRepository(private val db: DSLContext) : BrandRepository {
             .offset(offset)
             .fetch()
             .map { BrandPreview(it[BRAND.ID], it[BRAND.NAME]) }
+        var hasNext = false
         if (items.size == limit + 1) {
             items.removeLast()
             hasNext = true
