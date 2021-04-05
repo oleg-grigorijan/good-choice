@@ -14,6 +14,7 @@ import com.goodchoice.domain.user.model.EmployeeInvitationRequest
 import com.goodchoice.domain.user.persistence.EmployeeInvitationRepository
 import com.goodchoice.infra.email.model.EmailTemplateInput
 import com.goodchoice.infra.email.service.EmailService
+import com.goodchoice.infra.persistence.runAfterTxCommit
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDateTime.now
@@ -64,9 +65,7 @@ class EmployeeInvitationServiceImpl(
             expiredTimestamp = getExpiredTimestamp()
         )
 
-        // TODO(#8): After tx commit
-        sendConfirmationEmail(invitation, token)
-
+        runAfterTxCommit { sendConfirmationEmail(invitation, token) }
         return invitation
     }
 
@@ -81,9 +80,7 @@ class EmployeeInvitationServiceImpl(
             expiredTimestamp = getExpiredTimestamp()
         )
 
-        // TODO(#8): After tx commit
-        sendConfirmationEmail(invitation, token)
-
+        runAfterTxCommit { sendConfirmationEmail(invitation, token) }
         return invitation
     }
 
