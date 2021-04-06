@@ -14,7 +14,7 @@ spring:
     host: '${EMAIL_HOST:smtp.gmail.com}'
     port: ${EMAIL_PORT:587}
     username: '${good-choice.email.bot.address}'
-    password: '${EMAIL_BOT_PASSWORD}'
+    password: '${BOT_EMAIL_PASSWORD}'
     properties:
       mail:
         smtp:
