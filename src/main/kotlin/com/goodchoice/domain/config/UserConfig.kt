@@ -57,7 +57,7 @@ class UserConfig {
 
     @ConditionalOnProperty(name = ["good-choice.bootstrap.employee-creation.enabled"], havingValue = "true")
     @Bean(initMethod = "run")
-    fun employeeCreateBootstrap(
+    fun employeeCreationBootstrap(
         employeeRepo: EmployeeRepository,
         authService: AuthService,
         props: EmployeeCreationBootstrapProperties,

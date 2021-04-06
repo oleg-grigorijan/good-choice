@@ -5,6 +5,7 @@ import com.goodchoice.domain.user.model.EmployeeInvitationSelfView
 import com.goodchoice.domain.user.model.EmployeeRegistrationRequest
 import com.goodchoice.domain.user.model.toSelfView
 import com.goodchoice.domain.user.persistence.EmployeeRepository
+import org.springframework.transaction.annotation.Transactional
 
 interface EmployeeSelfService {
 
@@ -15,15 +16,17 @@ interface EmployeeSelfService {
 
 class EmployeeSelfServiceImpl(
     private val employeeRepo: EmployeeRepository,
-    private val invitations: EmployeeInvitationService,
+    private val invitationService: EmployeeInvitationService,
     private val authService: AuthService,
 ) : EmployeeSelfService {
 
+    @Transactional(readOnly = true)
     override fun getInvitationByToken(token: String): EmployeeInvitationSelfView =
-        invitations.getNotExpiredByToken(token).toSelfView()
+        invitationService.getNotExpiredByToken(token).toSelfView()
 
+    @Transactional
     override fun acceptInvitation(request: EmployeeRegistrationRequest) {
-        val invitation = invitations.getNotExpiredByToken(request.invitationToken)
+        val invitation = invitationService.getNotExpiredByToken(request.invitationToken)
         employeeRepo.create(
             role = invitation.role,
             email = invitation.email,
@@ -31,6 +34,6 @@ class EmployeeSelfServiceImpl(
             lastName = request.lastName,
             passwordHash = authService.generatePasswordHash(request.password)
         )
-        invitations.closeByToken(request.invitationToken)
+        invitationService.closeByToken(request.invitationToken)
     }
 }

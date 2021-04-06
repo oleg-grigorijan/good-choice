@@ -2,9 +2,9 @@ package com.goodchoice.domain.user.persistence
 
 import com.goodchoice.domain.common.jooq.Tables.ACTOR
 import com.goodchoice.domain.common.jooq.enums.ActorRole
+import com.goodchoice.infra.common.now
 import org.jooq.DSLContext
 import java.time.Clock
-import java.time.LocalDateTime
 import java.util.*
 
 interface ReviewerRepository {
@@ -22,7 +22,7 @@ class JooqReviewerRepository(private val db: DSLContext, private val clock: Cloc
             .set(ACTOR.LAST_NAME, lastName)
             .set(ACTOR.ROLE, ActorRole.REVIEWER)
             .set(ACTOR.PASSWORD_HASH, passwordHash)
-            .set(ACTOR.CREATED_TIMESTAMP, LocalDateTime.now(clock))
+            .set(ACTOR.CREATED_TIMESTAMP, clock.now())
             .set(ACTOR.IS_ACTIVE, true)
             .execute()
         return id

@@ -4,8 +4,9 @@ import com.goodchoice.domain.user.model.EmployeeInvitationSelfView
 import com.goodchoice.domain.user.model.EmployeeRegistrationRequest
 import com.goodchoice.domain.user.service.EmployeeSelfService
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.HttpStatus.CREATED
+import org.springframework.http.HttpStatus.OK
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -14,12 +15,13 @@ import org.springframework.web.bind.annotation.*
 class EmployeeSelfController(private val employeeSelfService: EmployeeSelfService) {
 
     @GetMapping("/invitations")
+    @ResponseStatus(OK)
     @Operation(summary = "Verify invitation exists by token, get invitation data")
     fun getInvitationByToken(@RequestParam token: String): EmployeeInvitationSelfView =
         employeeSelfService.getInvitationByToken(token)
 
     @PostMapping
-    @SecurityRequirements
+    @ResponseStatus(CREATED)
     @Operation(summary = "Accept invitation and register employee")
     fun acceptInvitation(@RequestBody request: EmployeeRegistrationRequest) {
         employeeSelfService.acceptInvitation(request)

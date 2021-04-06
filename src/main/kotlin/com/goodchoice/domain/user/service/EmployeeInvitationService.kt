@@ -12,12 +12,12 @@ import com.goodchoice.domain.user.UserExistsByEmailException
 import com.goodchoice.domain.user.model.EmployeeInvitation
 import com.goodchoice.domain.user.model.EmployeeInvitationRequest
 import com.goodchoice.domain.user.persistence.EmployeeInvitationRepository
+import com.goodchoice.infra.common.now
 import com.goodchoice.infra.email.model.EmailTemplateInput
 import com.goodchoice.infra.email.service.EmailService
 import com.goodchoice.infra.persistence.runAfterTxCommit
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-import java.time.LocalDateTime.now
 import java.util.*
 
 interface EmployeeInvitationService {
@@ -46,7 +46,7 @@ class EmployeeInvitationServiceImpl(
     @Transactional(readOnly = true)
     override fun getNotExpiredByToken(token: String): EmployeeInvitation {
         val invitation = invitationRepo.getByTokenOrNull(token) ?: throw EmployeeInvitationNotFoundException()
-        forbid(invitation.isExpired(clock)) { EmployeeInvitationExpiredException() }
+        forbid(invitation.isExpiredRelativeTo(clock.now())) { EmployeeInvitationExpiredException() }
         return invitation
     }
 
@@ -95,7 +95,7 @@ class EmployeeInvitationServiceImpl(
         invitationRepo.removeByToken(token)
     }
 
-    private fun getExpiredTimestamp() = now(clock) + EMPLOYEE_INVITATION_TIME_TO_LIVE
+    private fun getExpiredTimestamp() = clock.now() + EMPLOYEE_INVITATION_TIME_TO_LIVE
 
     private fun sendConfirmationEmail(invitation: EmployeeInvitation, token: String) {
         emailService.send(to = invitation.email, EmailTemplateInput.EmployeeInvitation(

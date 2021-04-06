@@ -4,9 +4,9 @@ import com.goodchoice.domain.auth.model.UserRole
 import com.goodchoice.domain.auth.model.toJooqActorRole
 import com.goodchoice.domain.common.jooq.Tables.ACTOR
 import com.goodchoice.domain.common.model.Email
+import com.goodchoice.infra.common.now
 import org.jooq.DSLContext
 import java.time.Clock
-import java.time.LocalDateTime.now
 import java.util.UUID.randomUUID
 
 interface EmployeeRepository {
@@ -26,7 +26,7 @@ class JooqEmployeeRepository(private val db: DSLContext, private val clock: Cloc
                 .set(ROLE, role.toJooqActorRole())
                 .set(PASSWORD_HASH, passwordHash)
                 .set(IS_ACTIVE, true)
-                .set(CREATED_TIMESTAMP, now(clock))
+                .set(CREATED_TIMESTAMP, clock.now())
                 .execute()
         }
     }

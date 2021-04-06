@@ -2,9 +2,7 @@ package com.goodchoice.domain.user.model
 
 import com.goodchoice.domain.auth.model.UserRole
 import com.goodchoice.domain.common.model.Email
-import java.time.Clock
 import java.time.LocalDateTime
-import java.time.LocalDateTime.now
 import java.util.*
 
 data class EmployeeInvitation(
@@ -16,7 +14,7 @@ data class EmployeeInvitation(
     val expiredTimestamp: LocalDateTime,
 ) {
 
-    fun isExpired(clock: Clock) = expiredTimestamp <= now(clock)
+    fun isExpiredRelativeTo(timestamp: LocalDateTime) = expiredTimestamp <= timestamp
 }
 
 data class EmployeeInvitationSelfView(

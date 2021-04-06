@@ -7,12 +7,12 @@ import com.goodchoice.domain.common.jooq.Tables.EMPLOYEE_INVITATION
 import com.goodchoice.domain.common.model.Email
 import com.goodchoice.domain.user.EmployeeInvitationNotFoundException
 import com.goodchoice.domain.user.model.EmployeeInvitation
+import com.goodchoice.infra.common.now
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.Result
 import java.time.Clock
 import java.time.LocalDateTime
-import java.time.LocalDateTime.now
 import java.util.*
 import java.util.UUID.randomUUID
 
@@ -71,7 +71,7 @@ class JooqEmployeeInvitationRepository(private val db: DSLContext, private val c
                 .set(SUGGESTED_FIRST_NAME, suggestedFirstName)
                 .set(SUGGESTED_LAST_NAME, suggestedLastName)
                 .apply {
-                    val now = now(clock)
+                    val now = clock.now()
                     set(CREATED_TIMESTAMP, now)
                     set(LAST_REFRESHED_TIMESTAMP, now)
                 }
@@ -85,7 +85,7 @@ class JooqEmployeeInvitationRepository(private val db: DSLContext, private val c
         with(EMPLOYEE_INVITATION) {
             db.update(EMPLOYEE_INVITATION)
                 .set(TOKEN, refreshedToken)
-                .set(LAST_REFRESHED_TIMESTAMP, now(clock))
+                .set(LAST_REFRESHED_TIMESTAMP, clock.now())
                 .set(EXPIRED_TIMESTAMP, expiredTimestamp)
                 .where(ID.eq(id))
                 .returning(modelFields)
