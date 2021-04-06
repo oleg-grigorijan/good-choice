@@ -36,11 +36,21 @@ springdoc:
 server.port: ${PORT:443}
 
 good-choice:
+  bootstrap:
+    employee-creation:
+      enabled: ${EMPLOYEE_CREATION_BOOTSTRAP_ENABLED:true}
+      accounts:
+        - role: 'hr'
+          email: '${SUPER_HR_EMAIL_ADDRESS:goodchoice.hr.super@gmail.com}'
+          password: '${SUPER_HR_PASSWORD}'
+          first-name: 'HR'
+          last-name: 'Super'
+
   email:
     mode: 'real'
     bot:
-      address: '${EMAIL_BOT_ADDRESS:goodchoice.bot@gmail.com}'
+      address: '${BOT_EMAIL_ADDRESS:goodchoice.bot@gmail.com}'
       name: 'GoodChoice Bot'
     help:
-      address: '${EMAIL_HELP_ADDRESS:goodchoice.help@gmail.com}'
+      address: '${HELP_EMAIL_ADDRESS:goodchoice.help@gmail.com}'
       name: 'GoodChoice Help'

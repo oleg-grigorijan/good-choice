@@ -5,4 +5,7 @@ spring:
     password: 'good-choice-pass'
 
 good-choice:
+  bootstrap:
+    employee-creation.enabled: false
+
   email.mode: 'emulation'

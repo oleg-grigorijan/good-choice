@@ -7,6 +7,26 @@ spring:
 server.port: 8080
 
 good-choice:
+  bootstrap:
+    employee-creation:
+      enabled: true
+      accounts:
+        - role: 'hr'
+          email: 'goodchoice.hr.super.local@gmail.com'
+          first-name: 'HR'
+          last-name: 'Super Local'
+          password: 'password'
+        - role: 'moderator'
+          email: 'goodchoice.moderator.super.local@gmail.com'
+          first-name: 'Moderator'
+          last-name: 'Super Local'
+          password: 'password'
+        - role: 'administrator'
+          email: 'goodchoice.administrator.super.local@gmail.com'
+          first-name: 'Administrator'
+          last-name: 'Super Local'
+          password: 'password'
+
   email:
     mode: 'emulation'
     bot:

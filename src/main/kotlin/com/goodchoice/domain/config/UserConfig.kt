@@ -1,15 +1,19 @@
 package com.goodchoice.domain.config
 
 import com.goodchoice.domain.auth.service.AuthService
+import com.goodchoice.domain.user.model.EmployeeCreationBootstrapProperties
 import com.goodchoice.domain.user.persistence.*
 import com.goodchoice.domain.user.service.*
 import com.goodchoice.infra.email.service.EmailService
 import org.jooq.DSLContext
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Clock
 
 @Configuration
+@EnableConfigurationProperties(EmployeeCreationBootstrapProperties::class)
 class UserConfig {
 
     @Bean
@@ -38,16 +42,24 @@ class UserConfig {
 
     @Bean
     fun employeeInvitationService(
-        employeeInvitationRepo: EmployeeInvitationRepository,
-        emailService: EmailService,
-        authService: AuthService,
-        clock: Clock,
+            employeeInvitationRepo: EmployeeInvitationRepository,
+            emailService: EmailService,
+            authService: AuthService,
+            clock: Clock,
     ): EmployeeInvitationService = EmployeeInvitationServiceImpl(employeeInvitationRepo, emailService, authService, clock)
 
     @Bean
     fun employeeSelfService(
-        employeeRepo: EmployeeRepository,
-        employeeInvitationService: EmployeeInvitationService,
-        authService: AuthService,
+            employeeRepo: EmployeeRepository,
+            employeeInvitationService: EmployeeInvitationService,
+            authService: AuthService,
     ): EmployeeSelfService = EmployeeSelfServiceImpl(employeeRepo, employeeInvitationService, authService)
+
+    @ConditionalOnProperty(name = ["good-choice.bootstrap.employee-creation.enabled"], havingValue = "true")
+    @Bean(initMethod = "run")
+    fun employeeCreateBootstrap(
+            employeeRepo: EmployeeRepository,
+            authService: AuthService,
+            props: EmployeeCreationBootstrapProperties,
+    ) = EmployeeCreationBootstrap(employeeRepo, authService, props.accounts)
 }

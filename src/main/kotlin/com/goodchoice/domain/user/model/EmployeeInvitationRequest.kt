@@ -7,10 +7,10 @@ import com.goodchoice.domain.common.validateSingleLineString
 import com.goodchoice.domain.common.verify
 
 data class EmployeeInvitationRequest(
-    val email: Email,
-    val role: UserRole,
-    val suggestedFirstName: String,
-    val suggestedLastName: String,
+        val role: UserRole,
+        val email: Email,
+        val suggestedFirstName: String,
+        val suggestedLastName: String,
 ) {
 
     init {
