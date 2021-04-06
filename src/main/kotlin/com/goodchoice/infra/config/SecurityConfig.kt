@@ -41,6 +41,7 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                 authorize(GET, "/brands", permitAll)
                 authorize(GET, "/brands/*", permitAll)
 
+
                 authorize("/**", authenticated)
             }
             httpBasic {

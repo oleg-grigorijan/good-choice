@@ -3,6 +3,7 @@ package com.goodchoice.domain.brand.service
 import com.goodchoice.domain.auth.model.UserRole
 import com.goodchoice.domain.auth.model.requireRole
 import com.goodchoice.domain.auth.service.AuthService
+import com.goodchoice.domain.brand.BrandNotFoundException
 import com.goodchoice.domain.brand.model.Brand
 import com.goodchoice.domain.brand.model.BrandModificationRequest
 import com.goodchoice.domain.brand.model.BrandPreview
@@ -37,7 +38,7 @@ class BrandServiceImpl(
 
     @Transactional
     override fun getById(id: UUID): Brand =
-        brandRepo.getByIdOrNull(id) ?: throw RuntimeException()
+        brandRepo.getByIdOrNull(id) ?: throw BrandNotFoundException()
 
     @Transactional
     override fun update(id: UUID, request: BrandModificationRequest) {

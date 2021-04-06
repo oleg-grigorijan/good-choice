@@ -12,12 +12,10 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class BrandConfig {
     @Bean
-    fun brandService(brandRepo: BrandRepository, authService: AuthService): BrandService {
-        return BrandServiceImpl(brandRepo, authService)
-    }
+    fun brandService(brandRepo: BrandRepository, authService: AuthService): BrandService =
+        BrandServiceImpl(brandRepo, authService)
 
     @Bean
-    fun brandRepo(db: DSLContext): BrandRepository {
-        return BrandJooqRepository(db)
-    }
+    fun brandRepo(db: DSLContext): BrandRepository =
+        BrandJooqRepository(db)
 }
