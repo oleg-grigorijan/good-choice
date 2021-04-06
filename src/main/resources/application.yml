@@ -46,6 +46,9 @@ good-choice:
           first-name: 'HR'
           last-name: 'Super'
 
+  external-services:
+    web-frontend: '${WEB_FRONTEND_URL:https://good-choice-web.herokuapp.com}'
+
   email:
     mode: 'real'
     bot:

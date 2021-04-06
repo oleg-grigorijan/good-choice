@@ -101,7 +101,6 @@ class EmployeeInvitationServiceImpl(
         emailService.send(to = invitation.email, EmailTemplateInput.EmployeeInvitation(
             token = token,
             suggestedFirstName = invitation.suggestedFirstName,
-            webFrontendUrl = "http://localhost:4200"
         ))
     }
 }

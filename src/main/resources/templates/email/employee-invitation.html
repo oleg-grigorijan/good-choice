@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
+    <!--/*@thymesVar id="common" type="com.goodchoice.infra.email.model.EmailTemplateCommonInput"*/-->
     <!--/*@thymesVar id="input" type="com.goodchoice.infra.email.model.EmailTemplateInput.EmployeeInvitation"*/-->
     <head>
         <title>GoodChoice employee invitation</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     </head>
-    <body th:object="${input}">
+    <body>
         <div class="container">
             <div class="card my-5">
                 <div class="card-body">
                     <h1>Join GoodChoice</h1>
                     <p>
-                        <span th:if="*{not #strings.isEmpty(suggestedFirstName)}">Hi, [[*{suggestedFirstName}]].</span>
+                        <span th:if="${not #strings.isEmpty(input.suggestedFirstName)}">Hi, [[${input.suggestedFirstName}]].</span>
                         It is so exciting that you will be a part of our team.
                         We are waiting for you to follow the link below and go through the registration process.
                     </p>
-                    <a th:href="*{registrationUrl}" href="#" th:text="*{registrationUrl}">https://example.com?token=abcdefghi</a>
+                    <a th:href="${input.getRegistrationUrl(common.webFrontendUrl)}" href="#"
+                       th:text="${input.getRegistrationUrl(common.webFrontendUrl)}">
+                        https://example.com?token=abcdefgh
+                    </a>
                     <p>Make your good choice!</p>
                 </div>
             </div>

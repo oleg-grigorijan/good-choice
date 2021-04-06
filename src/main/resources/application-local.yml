@@ -27,6 +27,9 @@ good-choice:
           last-name: 'Super Local'
           password: 'password'
 
+  external-services:
+    web-frontend: '${WEB_FRONTEND_URL:http://localhost:4200}'
+
   email:
     mode: 'emulation'
     bot:
