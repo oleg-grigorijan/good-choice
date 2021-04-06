@@ -6,23 +6,23 @@ import com.goodchoice.domain.user.persistence.EmployeeRepository
 import org.springframework.transaction.annotation.Transactional
 
 class EmployeeCreationBootstrap(
-        private val employeeRepo: EmployeeRepository,
-        private val authService: AuthService,
-        private val accounts: List<EmployeeCreationBootstrapProperties.Account>,
+    private val employeeRepo: EmployeeRepository,
+    private val authService: AuthService,
+    private val accounts: List<EmployeeCreationBootstrapProperties.Account>,
 ) : Runnable {
 
     @Transactional
     override fun run() {
         accounts
-                .filterNot { authService.existsByEmail(it.email) }
-                .forEach {
-                    employeeRepo.create(
-                            role = it.role,
-                            email = it.email,
-                            firstName = it.firstName,
-                            lastName = it.lastName,
-                            passwordHash = authService.generatePasswordHash(it.password)
-                    )
-                }
+            .filterNot { authService.existsByEmail(it.email) }
+            .forEach {
+                employeeRepo.create(
+                    role = it.role,
+                    email = it.email,
+                    firstName = it.firstName,
+                    lastName = it.lastName,
+                    passwordHash = authService.generatePasswordHash(it.password)
+                )
+            }
     }
 }

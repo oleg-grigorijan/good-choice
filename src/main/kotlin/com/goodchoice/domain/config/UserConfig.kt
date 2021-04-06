@@ -42,24 +42,24 @@ class UserConfig {
 
     @Bean
     fun employeeInvitationService(
-            employeeInvitationRepo: EmployeeInvitationRepository,
-            emailService: EmailService,
-            authService: AuthService,
-            clock: Clock,
+        employeeInvitationRepo: EmployeeInvitationRepository,
+        emailService: EmailService,
+        authService: AuthService,
+        clock: Clock,
     ): EmployeeInvitationService = EmployeeInvitationServiceImpl(employeeInvitationRepo, emailService, authService, clock)
 
     @Bean
     fun employeeSelfService(
-            employeeRepo: EmployeeRepository,
-            employeeInvitationService: EmployeeInvitationService,
-            authService: AuthService,
+        employeeRepo: EmployeeRepository,
+        employeeInvitationService: EmployeeInvitationService,
+        authService: AuthService,
     ): EmployeeSelfService = EmployeeSelfServiceImpl(employeeRepo, employeeInvitationService, authService)
 
     @ConditionalOnProperty(name = ["good-choice.bootstrap.employee-creation.enabled"], havingValue = "true")
     @Bean(initMethod = "run")
     fun employeeCreateBootstrap(
-            employeeRepo: EmployeeRepository,
-            authService: AuthService,
-            props: EmployeeCreationBootstrapProperties,
+        employeeRepo: EmployeeRepository,
+        authService: AuthService,
+        props: EmployeeCreationBootstrapProperties,
     ) = EmployeeCreationBootstrap(employeeRepo, authService, props.accounts)
 }

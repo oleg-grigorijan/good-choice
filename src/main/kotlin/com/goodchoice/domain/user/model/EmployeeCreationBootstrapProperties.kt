@@ -1,6 +1,7 @@
 package com.goodchoice.domain.user.model
 
 import com.goodchoice.domain.auth.model.UserRole
+import com.goodchoice.domain.common.UnexpectedUserRoleException
 import com.goodchoice.domain.common.model.Email
 import com.goodchoice.domain.common.model.NewPassword
 import com.goodchoice.domain.common.verify
@@ -10,19 +11,19 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties("good-choice.bootstrap.employee-creation")
 @ConstructorBinding
 data class EmployeeCreationBootstrapProperties(
-        val enabled: Boolean,
-        val accounts: List<Account>,
+    val enabled: Boolean,
+    val accounts: List<Account>,
 ) {
 
     data class Account(
-            val role: UserRole,
-            val email: Email,
-            val firstName: String,
-            val lastName: String,
-            val password: NewPassword,
+        val role: UserRole,
+        val email: Email,
+        val firstName: String,
+        val lastName: String,
+        val password: NewPassword,
     ) {
         init {
-            verify(role.isEmployee()) { RuntimeException() /* TODO(#8) */ }
+            verify(role.isEmployee()) { UnexpectedUserRoleException() }
         }
     }
 }

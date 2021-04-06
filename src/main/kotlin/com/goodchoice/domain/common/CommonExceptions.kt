@@ -28,3 +28,5 @@ class PasswordMinLengthException(val minLength: Int) : FormatException()
 
 class PageOffsetNegativeException : FormatException()
 class PageLimitNegativeException : FormatException()
+
+class UnexpectedUserRoleException : FormatException()
