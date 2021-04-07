@@ -1,6 +1,5 @@
 package com.goodchoice.domain.subjectTag.persistence
 
-import com.goodchoice.domain.common.jooq.Tables.BRAND
 import com.goodchoice.domain.common.jooq.Tables.SUBJECT_TAG
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
@@ -62,5 +61,5 @@ class SubjectTagJooqRepository(private val db: DSLContext) : SubjectTagRepositor
                 SUBJECT_TAG.ID.eq(id)
             )
             .fetchOne()
-            ?.map { SubjectTag(it[BRAND.ID], it[BRAND.NAME], it[SUBJECT_TAG.SUBJECTS_COUNT]) }
+            ?.map { SubjectTag(it[SUBJECT_TAG.ID], it[SUBJECT_TAG.NAME], it[SUBJECT_TAG.SUBJECTS_COUNT]) }
 }

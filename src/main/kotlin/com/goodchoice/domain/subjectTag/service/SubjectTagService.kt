@@ -1,5 +1,7 @@
 package com.goodchoice.domain.subjectTag.service
 
+import com.goodchoice.domain.auth.model.UserRole
+import com.goodchoice.domain.auth.model.requireRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
@@ -21,18 +23,19 @@ class SubjectTagServiceImpl(private val subjectTagRepo: SubjectTagRepository, pr
     SubjectTagService {
 
     override fun create(request: SubjectTagModificationRequest): Reference {
-        return subjectTagRepo.create(request.name)
+        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        return subjectTagRepo.create(name = request.name)
     }
 
     override fun getById(id: UUID): SubjectTag =
         subjectTagRepo.getByIdOrNull(id) ?: throw SubjectTagNotFoundException()
 
     override fun update(id: UUID, request: SubjectTagModificationRequest) {
-        TODO("Not yet implemented")
+        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        subjectTagRepo.update(id = id, name = request.name)
     }
 
-    override fun getAllByQuery(query: String, pageRequest: PageRequest): Page<SubjectTag> {
-        TODO("Not yet implemented")
-    }
+    override fun getAllByQuery(query: String, pageRequest: PageRequest): Page<SubjectTag> =
+        subjectTagRepo.getAllByQuery(query = query, pageRequest = pageRequest)
 
 }

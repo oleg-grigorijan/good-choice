@@ -45,9 +45,9 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                 authorize(GET, "/subjects", permitAll)
                 authorize(GET, "/subjects/*", permitAll)
 
-                // Tags
-                authorize(GET, "/tags", permitAll)
-                authorize(GET, "/tags/*", permitAll)
+                // Subject tags
+                authorize(GET, "/subjects/tags", permitAll)
+                authorize(GET, "/subjects/tags/*", permitAll)
 
                 authorize("/**", authenticated)
             }
