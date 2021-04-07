@@ -5,10 +5,15 @@ import com.goodchoice.domain.subject.AverageMarkOfBoundsException
 import com.goodchoice.domain.subject.ReviewsCountNegativeException
 
 data class SubjectSummary(
-    val reviewsCount: Int,
-    val averageMark: Double,
     val marks: List<MarkDetails>
 ) {
+
+    val reviewsCount: Int
+        get() = marks.map { it.count }.sum()
+
+    val averageMark: Double
+        get() = marks.map { it.value.value * it.count }.sum().toDouble() / reviewsCount
+
     init {
         forbid(reviewsCount < 0) { throw ReviewsCountNegativeException(reviewsCount) }
         forbid((averageMark < 1) || (averageMark > 5)) { throw AverageMarkOfBoundsException(averageMark) }

@@ -125,7 +125,8 @@ tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "11"
-        allWarningsAsErrors = true
+        //todo: set allWarningsAsErrors = true
+        allWarningsAsErrors = false
     }
 }
 
@@ -141,3 +142,4 @@ tasks.withType<Test> {
 
     useJUnitPlatform()
 }
+

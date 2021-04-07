@@ -1,5 +1,6 @@
 package com.goodchoice.rest.subject
 
+import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.subject.model.Subject
 import com.goodchoice.domain.subject.model.SubjectModificationRequest
 import com.goodchoice.domain.subject.service.SubjectService
@@ -18,14 +19,14 @@ class SubjectController(private val subjectService: SubjectService) {
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get subject by id")
     fun getById(@PathVariable(value = "id") id: UUID): Subject {
-        return brandService.getById(id)
+        return subjectService.getById(id)
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Create a new subject")
-    fun create(@RequestBody request: SubjectModificationRequest): Subject {
-        return brandService.create(request)
+    fun create(@RequestBody request: SubjectModificationRequest): Reference {
+        return subjectService.create(request)
     }
 
 }
