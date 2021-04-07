@@ -2,23 +2,39 @@ package com.goodchoice.domain.subject.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.goodchoice.domain.brand.model.BrandPreview
-import com.goodchoice.domain.common.jooq.Tables.SUBJECT
-import com.goodchoice.domain.common.jooq.Tables.SUBJECT_FULL_VIEW
+import com.goodchoice.domain.common.jooq.Tables.*
+import com.goodchoice.domain.common.model.Page
+import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
-import com.goodchoice.domain.subject.model.MarkDetails
 import com.goodchoice.domain.subject.model.Subject
+import com.goodchoice.domain.subject.model.SubjectPreview
 import com.goodchoice.domain.subject.model.SubjectSummary
-import com.goodchoice.infra.persistence.readList
+import com.goodchoice.infra.persistence.read
+import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.*
 
 interface SubjectRepository {
     fun create(name: String, description: String, tags: List<Reference>, brand: Reference): Reference
-    fun update(id: UUID, name: String, description: String, tags: List<Reference>, brand: Reference)
+    fun update(
+        id: UUID,
+        name: String,
+        description: String,
+        brand: Reference,
+        addedTags: List<Reference>,
+        removedTags: List<Reference>
+    )
 
-    //    fun getAllByQuery(query: String, pageRequest: PageRequest): Page<BrandPreview>
+    fun getAllPreviewsByQuery(
+        query: String?,
+        brandId: UUID?,
+        tagId: UUID?,
+        pageRequest: PageRequest
+    ): Page<SubjectPreview>
+
     fun getByIdOrNull(id: UUID): Subject?
 }
 
@@ -30,10 +46,8 @@ class SubjectJooqRepository(
     override fun create(name: String, description: String, tags: List<Reference>, brand: Reference): Reference {
         val id = UUID.randomUUID()
 
-        //todo: insertInto SUBJECT_TO_TAG
-//        db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
-//            .values(tags.map{ db.newRecord(SUBJECT_TO_TAG.)})
 
+        //todo: prevent from inserting into subject if inserting subject_to_tag throws
         db.insertInto(SUBJECT)
             .set(SUBJECT.ID, id)
             .set(SUBJECT.NAME, name)
@@ -43,15 +57,93 @@ class SubjectJooqRepository(
             .set(SUBJECT.CREATED_TIMESTAMP, LocalDateTime.now(clock))
             .execute()
 
+        //todo: check if that's ok for no tags passed
+        db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+            .apply { tags.forEach { values(id, it.id) } }
+            .execute()
+
         return Reference(id)
     }
 
-    override fun update(id: UUID, name: String, description: String, tags: List<Reference>, brand: Reference) {
-        TODO("Not yet implemented")
+    override fun update(
+        id: UUID,
+        name: String,
+        description: String,
+        brand: Reference,
+        addedTags: List<Reference>,
+        removedTags: List<Reference>
+    ) {
+
+        //todo: throw bad request if error while inserting happens
+
+        db.update(SUBJECT)
+            .set(SUBJECT.ID, id)
+            .set(SUBJECT.NAME, name)
+            .set(SUBJECT.DESCRIPTION, description)
+            .set(SUBJECT.BRAND_ID, brand.id)
+            .where(SUBJECT.ID.eq(id))
+            .execute()
+
+        //todo: check if that's ok for no tags passed
+        db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+            .apply { addedTags.forEach { values(id, it.id) } }
+            .execute()
+
+        //todo: check if that's ok for no tags passed
+
+        db.delete(SUBJECT_TO_TAG)
+            .where(
+                SUBJECT_TO_TAG.SUBJECT_ID.eq(id).and(
+                    removedTags.map { SUBJECT_TO_TAG.TAG_ID.eq(it.id) }
+                        .fold(DSL.falseCondition() as Condition, { ac, e -> ac.or(e) })
+                )
+            )
+            .execute()
+
     }
 
+    override fun getAllPreviewsByQuery(
+        query: String?,
+        brandId: UUID?,
+        tagId: UUID?,
+        pageRequest: PageRequest
+    ): Page<SubjectPreview> {
+        val limit = pageRequest.limit
+        val offset = pageRequest.offset
+
+        val items = db.select(
+            SUBJECT_FULL_VIEW.ID,
+            SUBJECT_FULL_VIEW.NAME,
+            SUBJECT_FULL_VIEW.BRAND_ID,
+            SUBJECT_FULL_VIEW.BRAND_NAME,
+            SUBJECT_FULL_VIEW.MARKS
+        )
+            .from(SUBJECT_FULL_VIEW)
+            .where(
+                SUBJECT_FULL_VIEW.IS_SHOWN.eq(true)
+                    .and(SUBJECT_FULL_VIEW.NAME.likeIgnoreCase("%$query%"))
+            )
+            .limit(limit + 1)
+            .offset(offset)
+            .fetch()
+            .map {
+                SubjectPreview(
+                    id = it[SUBJECT_FULL_VIEW.ID],
+                    name = it[SUBJECT_FULL_VIEW.NAME],
+                    brand = BrandPreview(it[SUBJECT_FULL_VIEW.BRAND_ID], it[SUBJECT_FULL_VIEW.BRAND_NAME]),
+                    summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].read(objectMapper))
+                )
+            }
+        var hasNext = false
+        if (items.size == limit + 1) {
+            items.removeLast()
+            hasNext = true
+        }
+        return Page(offset, items, hasNext)
+    }
+
+
     override fun getByIdOrNull(id: UUID): Subject? {
-        // todo: map it[SUBJECT_FULL_VIEW.MARKS] to List<MarkDetails>
         return db.select()
             .from(SUBJECT_FULL_VIEW)
             .where(
@@ -60,12 +152,11 @@ class SubjectJooqRepository(
             )
             .fetchOne()
             ?.map {
-                val tmp = it[SUBJECT_FULL_VIEW.MARKS].readList<MarkDetails>(objectMapper)
                 Subject(
                     id = it[SUBJECT_FULL_VIEW.ID],
                     name = it[SUBJECT_FULL_VIEW.NAME],
                     brand = BrandPreview(it[SUBJECT_FULL_VIEW.BRAND_ID], it[SUBJECT_FULL_VIEW.BRAND_NAME]),
-                    summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].readList(objectMapper)),
+                    summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].read(objectMapper)),
                     description = it[SUBJECT.DESCRIPTION],
                 )
             }

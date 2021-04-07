@@ -11,14 +11,16 @@ data class SubjectSummary(
     val reviewsCount: Int
         get() = marks.map { it.count }.sum()
 
-    val averageMark: Double
-        get() = marks.map { it.value.value * it.count }.sum().toDouble() / reviewsCount
+    val averageMark: Double?
+        get() = (marks.map { it.value.value * it.count }.sum().toDouble() / reviewsCount).takeIf { it.isFinite() }
 
     init {
         forbid(reviewsCount < 0) { throw ReviewsCountNegativeException(reviewsCount) }
-        forbid((averageMark < 1) || (averageMark > 5)) { throw AverageMarkOfBoundsException(averageMark) }
+        //todo: come up with NaN solution and set appropriate range
+        forbid((averageMark != null) && ((averageMark!! < 1.0) || (averageMark!! > 5))) {
+            throw AverageMarkOfBoundsException(
+                averageMark
+            )
+        }
     }
-//    companion object{
-//        fun empty():SubjectSummary = SubjectSummary(0, 0.0, emptyList())
-//    }
 }

@@ -3,7 +3,8 @@ package com.goodchoice.infra.config
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.infra.security.AuthUserDetailsService
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod.*
+import org.springframework.http.HttpMethod.GET
+import org.springframework.http.HttpMethod.POST
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
@@ -44,11 +45,9 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                 authorize(GET, "/subjects", permitAll)
                 authorize(GET, "/subjects/*", permitAll)
 
-                //todo: remove unauthorized access
-                authorize(POST, "/subjects", permitAll)
-                authorize(PUT, "/subjects/*", permitAll)
-
-
+                // Tags
+                authorize(GET, "/tags", permitAll)
+                authorize(GET, "/tags/*", permitAll)
 
                 authorize("/**", authenticated)
             }

@@ -9,4 +9,4 @@ abstract class MarkException(
 
 class MarkOutOfBoundsException(val value: Int) : MarkException()
 class MarkCountNegativeException(val count: Int) : MarkException()
-class AverageMarkOfBoundsException(val value: Double) : MarkException()
+class AverageMarkOfBoundsException(val value: Double?) : MarkException()

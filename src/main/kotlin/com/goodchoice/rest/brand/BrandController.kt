@@ -23,7 +23,7 @@ class BrandController(private val brandService: BrandService) {
     @ResponseStatus(HttpStatus.CREATED)
     @RequireSecurity
     @Operation(summary = "Add a new brand")
-    fun createBrand(@RequestBody request: BrandModificationRequest): Reference =
+    fun create(@RequestBody request: BrandModificationRequest): Reference =
         brandService.create(request)
 
     @GetMapping("/{id}")
@@ -35,9 +35,10 @@ class BrandController(private val brandService: BrandService) {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @RequireSecurity
-    @Operation(summary = "Editing brad")
-    fun edit(@PathVariable id: UUID, @RequestBody request: BrandModificationRequest) =
+    @Operation(summary = "Update brad")
+    fun update(@PathVariable id: UUID, @RequestBody request: BrandModificationRequest) {
         brandService.update(id, request)
+    }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
