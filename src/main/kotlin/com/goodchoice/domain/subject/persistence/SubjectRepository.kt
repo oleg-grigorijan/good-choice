@@ -1,7 +1,6 @@
 package com.goodchoice.domain.subject.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.goodchoice.domain.brand.model.BrandPreview
 import com.goodchoice.domain.common.jooq.Tables.*
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
@@ -111,27 +110,22 @@ class SubjectJooqRepository(
         val limit = pageRequest.limit
         val offset = pageRequest.offset
 
-        val items = db.select(
-            SUBJECT_FULL_VIEW.ID,
-            SUBJECT_FULL_VIEW.NAME,
-            SUBJECT_FULL_VIEW.BRAND_ID,
-            SUBJECT_FULL_VIEW.BRAND_NAME,
-            SUBJECT_FULL_VIEW.MARKS
-        )
-            .from(SUBJECT_FULL_VIEW)
+        val items = db.select()
+            .from(SUBJECT_PREVIEW_VIEW)
             .where(
-                SUBJECT_FULL_VIEW.IS_SHOWN.eq(true)
-                    .and(SUBJECT_FULL_VIEW.NAME.likeIgnoreCase("%$query%"))
+                SUBJECT_PREVIEW_VIEW.IS_SHOWN.eq(true)
+                    .and(SUBJECT_PREVIEW_VIEW.NAME.likeIgnoreCase("%$query%"))
             )
             .limit(limit + 1)
             .offset(offset)
             .fetch()
             .map {
                 SubjectPreview(
-                    id = it[SUBJECT_FULL_VIEW.ID],
-                    name = it[SUBJECT_FULL_VIEW.NAME],
-                    brand = BrandPreview(it[SUBJECT_FULL_VIEW.BRAND_ID], it[SUBJECT_FULL_VIEW.BRAND_NAME]),
-                    summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].read(objectMapper))
+                    id = it[SUBJECT_PREVIEW_VIEW.ID],
+                    name = it[SUBJECT_PREVIEW_VIEW.NAME],
+                    brand = it[SUBJECT_PREVIEW_VIEW.BRAND_PREVIEW].read(objectMapper),
+                    summary = SubjectSummary(it[SUBJECT_PREVIEW_VIEW.MARKS].read(objectMapper)),
+                    tags = it[SUBJECT_PREVIEW_VIEW.TAGS].read(objectMapper)
                 )
             }
         var hasNext = false
@@ -155,9 +149,10 @@ class SubjectJooqRepository(
                 Subject(
                     id = it[SUBJECT_FULL_VIEW.ID],
                     name = it[SUBJECT_FULL_VIEW.NAME],
-                    brand = BrandPreview(it[SUBJECT_FULL_VIEW.BRAND_ID], it[SUBJECT_FULL_VIEW.BRAND_NAME]),
+                    brand = it[SUBJECT_FULL_VIEW.BRAND_PREVIEW].read(objectMapper),
                     summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].read(objectMapper)),
                     description = it[SUBJECT.DESCRIPTION],
+                    tags = it[SUBJECT_FULL_VIEW.TAGS].read(objectMapper)
                 )
             }
     }
