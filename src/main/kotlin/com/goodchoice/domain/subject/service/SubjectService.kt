@@ -30,7 +30,7 @@ class SubjectServiceImpl(
         return subjectRepo.create(
             name = request.name,
             description = request.description,
-            tags = request.tags,
+            tags = request.subjectTags,
             brand = request.brand
         )
     }
@@ -47,8 +47,8 @@ class SubjectServiceImpl(
             name = request.name,
             description = request.description,
             brand = request.brand,
-            addedTags = request.addedTags,
-            removedTags = request.removedTags
+            addedTags = request.addedSubjectTags,
+            removedTags = request.removedSubjectTags
         )
     }
 
@@ -57,7 +57,7 @@ class SubjectServiceImpl(
         subjectRepo.getAllPreviewsByQuery(
             query = subjectQuery.query,
             brandId = subjectQuery.brandId,
-            tagId = subjectQuery.tagId,
+            tagId = subjectQuery.subjectTagId,
             pageRequest = pageRequest
         )
 

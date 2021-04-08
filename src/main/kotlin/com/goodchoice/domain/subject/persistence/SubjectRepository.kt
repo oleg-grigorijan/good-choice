@@ -125,7 +125,7 @@ class SubjectJooqRepository(
                     name = it[SUBJECT_PREVIEW_VIEW.NAME],
                     brand = it[SUBJECT_PREVIEW_VIEW.BRAND_PREVIEW].read(objectMapper),
                     summary = SubjectSummary(it[SUBJECT_PREVIEW_VIEW.MARKS].read(objectMapper)),
-                    tags = it[SUBJECT_PREVIEW_VIEW.TAGS].read(objectMapper)
+                    subjectTags = it[SUBJECT_PREVIEW_VIEW.TAGS].read(objectMapper)
                 )
             }
         var hasNext = false
@@ -152,7 +152,7 @@ class SubjectJooqRepository(
                     brand = it[SUBJECT_FULL_VIEW.BRAND_PREVIEW].read(objectMapper),
                     summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].read(objectMapper)),
                     description = it[SUBJECT.DESCRIPTION],
-                    tags = it[SUBJECT_FULL_VIEW.TAGS].read(objectMapper)
+                    subjectTags = it[SUBJECT_FULL_VIEW.TAGS].read(objectMapper)
                 )
             }
     }

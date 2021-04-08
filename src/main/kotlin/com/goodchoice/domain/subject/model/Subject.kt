@@ -12,7 +12,7 @@ data class Subject(
     val brand: BrandPreview,
     val summary: SubjectSummary,
     val description: String,
-    val tags: List<SubjectTag>
+    val subjectTags: List<SubjectTag>
 ) {
     init {
         validateSingleLineString(name, StringMaxLength.MEDIUM)

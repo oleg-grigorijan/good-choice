@@ -17,3 +17,6 @@ class SubjectNotFoundException() : SubjectException()
 
 @ResponseStatus(BAD_REQUEST)
 class InvalidSubjectTagException() : SubjectException()
+
+@ResponseStatus(BAD_REQUEST)
+class InvalidBrandException() : SubjectException()

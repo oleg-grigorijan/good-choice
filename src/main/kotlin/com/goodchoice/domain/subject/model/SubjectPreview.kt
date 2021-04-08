@@ -11,7 +11,7 @@ data class SubjectPreview(
     val name: String,
     val brand: BrandPreview,
     val summary: SubjectSummary,
-    val tags: List<SubjectTag>
+    val subjectTags: List<SubjectTag>
 ) {
     init {
         validateSingleLineString(name, StringMaxLength.MEDIUM)

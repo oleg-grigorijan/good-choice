@@ -46,7 +46,7 @@ class SubjectController(private val subjectService: SubjectService) {
         @RequestParam offset: Int
     ): Page<SubjectPreview> =
         subjectService.getAllPreviewsByQuery(
-            subjectQuery = SubjectQuery(query = query, brandId = brandId, tagId = tagId),
+            subjectQuery = SubjectQuery(query = query, brandId = brandId, subjectTagId = tagId),
             pageRequest = PageRequest(offset = offset, limit = limit)
         )
 

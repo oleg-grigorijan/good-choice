@@ -8,7 +8,7 @@ class SubjectCreationRequest(
     val name: String,
     val description: String,
     val brand: Reference,
-    val tags: List<Reference>
+    val subjectTags: List<Reference>
 ) {
     init {
         validateSingleLineString(name, StringMaxLength.MEDIUM)
