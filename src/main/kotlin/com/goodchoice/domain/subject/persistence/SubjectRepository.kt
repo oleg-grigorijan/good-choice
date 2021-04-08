@@ -1,10 +1,12 @@
 package com.goodchoice.domain.subject.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.goodchoice.domain.brand.model.BrandPreview
 import com.goodchoice.domain.common.jooq.Tables.*
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
+import com.goodchoice.domain.subject.InvalidAddedSubjectTagException
 import com.goodchoice.domain.subject.model.Subject
 import com.goodchoice.domain.subject.model.SubjectPreview
 import com.goodchoice.domain.subject.model.SubjectSummary
@@ -12,6 +14,7 @@ import com.goodchoice.infra.persistence.read
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
+import org.springframework.dao.DataIntegrityViolationException
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.*
@@ -45,22 +48,25 @@ class SubjectJooqRepository(
     override fun create(name: String, description: String, tags: List<Reference>, brand: Reference): Reference {
         val id = UUID.randomUUID()
 
+        db.transaction { configuration ->
+            val ctx = DSL.using(configuration)
+            ctx.insertInto(SUBJECT)
+                .set(SUBJECT.ID, id)
+                .set(SUBJECT.NAME, name)
+                .set(SUBJECT.DESCRIPTION, description)
+                .set(SUBJECT.BRAND_ID, brand.id)
+                .set(SUBJECT.IS_SHOWN, true)
+                .set(SUBJECT.CREATED_TIMESTAMP, LocalDateTime.now(clock))
+                .execute()
 
-        //todo: prevent from inserting into subject if inserting subject_to_tag throws
-        db.insertInto(SUBJECT)
-            .set(SUBJECT.ID, id)
-            .set(SUBJECT.NAME, name)
-            .set(SUBJECT.DESCRIPTION, description)
-            .set(SUBJECT.BRAND_ID, brand.id)
-            .set(SUBJECT.IS_SHOWN, true)
-            .set(SUBJECT.CREATED_TIMESTAMP, LocalDateTime.now(clock))
-            .execute()
-
-        //todo: check if that's ok for no tags passed
-        db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
-            .apply { tags.forEach { values(id, it.id) } }
-            .execute()
-
+            try {
+                ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+                    .apply { tags.forEach { values(id, it.id) } }
+                    .execute()
+            } catch (e: DataIntegrityViolationException) {
+                throw InvalidAddedSubjectTagException()
+            }
+        }
         return Reference(id)
     }
 
@@ -73,32 +79,34 @@ class SubjectJooqRepository(
         removedTags: List<Reference>
     ) {
 
-        //todo: throw bad request if error while inserting happens
+        db.transaction { configuration ->
+            val ctx = DSL.using(configuration)
 
-        db.update(SUBJECT)
-            .set(SUBJECT.ID, id)
-            .set(SUBJECT.NAME, name)
-            .set(SUBJECT.DESCRIPTION, description)
-            .set(SUBJECT.BRAND_ID, brand.id)
-            .where(SUBJECT.ID.eq(id))
-            .execute()
+            ctx.update(SUBJECT)
+                .set(SUBJECT.ID, id)
+                .set(SUBJECT.NAME, name)
+                .set(SUBJECT.DESCRIPTION, description)
+                .set(SUBJECT.BRAND_ID, brand.id)
+                .where(SUBJECT.ID.eq(id))
+                .execute()
 
-        //todo: check if that's ok for no tags passed
-        db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
-            .apply { addedTags.forEach { values(id, it.id) } }
-            .execute()
+            try {
+                ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+                    .apply { addedTags.forEach { values(id, it.id) } }
+                    .execute()
+            } catch (e: DataIntegrityViolationException) {
+                throw InvalidAddedSubjectTagException()
+            }
 
-        //todo: check if that's ok for no tags passed
-
-        db.delete(SUBJECT_TO_TAG)
-            .where(
-                SUBJECT_TO_TAG.SUBJECT_ID.eq(id).and(
-                    removedTags.map { SUBJECT_TO_TAG.TAG_ID.eq(it.id) }
-                        .fold(DSL.falseCondition() as Condition, { ac, e -> ac.or(e) })
+            ctx.delete(SUBJECT_TO_TAG)
+                .where(
+                    SUBJECT_TO_TAG.SUBJECT_ID.eq(id).and(
+                        removedTags.map { SUBJECT_TO_TAG.TAG_ID.eq(it.id) }
+                            .fold(DSL.falseCondition() as Condition) { ac, e -> ac.or(e) }
+                    )
                 )
-            )
-            .execute()
-
+                .execute()
+        }
     }
 
     override fun getAllPreviewsByQuery(
@@ -114,7 +122,27 @@ class SubjectJooqRepository(
             .from(SUBJECT_PREVIEW_VIEW)
             .where(
                 SUBJECT_PREVIEW_VIEW.IS_SHOWN.eq(true)
-                    .and(SUBJECT_PREVIEW_VIEW.NAME.likeIgnoreCase("%$query%"))
+                    .let { condition ->
+                        if (brandId != null) {
+                            condition.and(SUBJECT_PREVIEW_VIEW.BRAND_ID.eq(brandId))
+                        } else {
+                            condition
+                        }
+                    }
+                    .let { condition ->
+                        if (tagId != null) {
+                            condition.and(SUBJECT_PREVIEW_VIEW.TAGS)
+                        } else {
+                            condition
+                        }
+                    }
+                    .let { condition ->
+                        if (query != null) {
+                            condition.and(SUBJECT_PREVIEW_VIEW.NAME.likeIgnoreCase("%$query%"))
+                        } else {
+                            condition
+                        }
+                    }
             )
             .limit(limit + 1)
             .offset(offset)
@@ -123,7 +151,7 @@ class SubjectJooqRepository(
                 SubjectPreview(
                     id = it[SUBJECT_PREVIEW_VIEW.ID],
                     name = it[SUBJECT_PREVIEW_VIEW.NAME],
-                    brand = it[SUBJECT_PREVIEW_VIEW.BRAND_PREVIEW].read(objectMapper),
+                    brand = BrandPreview(it[SUBJECT_PREVIEW_VIEW.BRAND_ID], it[SUBJECT_PREVIEW_VIEW.BRAND_NAME]),
                     summary = SubjectSummary(it[SUBJECT_PREVIEW_VIEW.MARKS].read(objectMapper)),
                     subjectTags = it[SUBJECT_PREVIEW_VIEW.TAGS].read(objectMapper)
                 )
@@ -149,7 +177,7 @@ class SubjectJooqRepository(
                 Subject(
                     id = it[SUBJECT_FULL_VIEW.ID],
                     name = it[SUBJECT_FULL_VIEW.NAME],
-                    brand = it[SUBJECT_FULL_VIEW.BRAND_PREVIEW].read(objectMapper),
+                    brand = BrandPreview(it[SUBJECT_FULL_VIEW.BRAND_ID], it[SUBJECT_FULL_VIEW.BRAND_NAME]),
                     summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].read(objectMapper)),
                     description = it[SUBJECT.DESCRIPTION],
                     subjectTags = it[SUBJECT_FULL_VIEW.TAGS].read(objectMapper)

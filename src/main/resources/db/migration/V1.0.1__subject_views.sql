@@ -1,12 +1,3 @@
-create view subject_to_brand_preview_view as
-select subject.id as subject_id,
-       jsonb_build_object(
-               'id', brand.id,
-               'name', brand.name
-           )      as brand_preview
-from subject
-         join brand on brand.id = subject.brand_id;
-
 create view subject_to_marks_view as
 select subject.id                               as subject_id,
        jsonb_agg(distinct jsonb_build_object(
@@ -31,33 +22,35 @@ from subject
 group by subject.id;
 
 create view subject_full_view as
-select subject.id                                  as id,
-       subject.name                                as name,
-       subject.description                         as description,
-       subject.is_shown                            as is_shown,
-       subject_to_marks_view.marks                 as marks,
-       subject_to_tags_view.tags                   as tags,
-       subject_to_brand_preview_view.brand_preview as brand_preview,
-       image.location                              as image_location
+select subject.id                  as id,
+       subject.name                as name,
+       subject.description         as description,
+       subject.is_shown            as is_shown,
+       subject_to_marks_view.marks as marks,
+       subject_to_tags_view.tags   as tags,
+       brand.id                    as brand_id,
+       brand.name                  as brand_name,
+       image.location              as image_location
 
 from subject
+         join brand on brand.id = subject.brand_id
          join subject_to_marks_view on subject.id = subject_to_marks_view.subject_id
          join subject_to_tags_view on subject.id = subject_to_tags_view.subject_id
-         join subject_to_brand_preview_view on subject.id = subject_to_brand_preview_view.subject_id
          left join image on subject.primary_image_id = image.id;
 
 
 create view subject_preview_view as
-select subject.id                                  as id,
-       subject.name                                as name,
-       subject.is_shown                            as is_shown,
-       subject_to_marks_view.marks                 as marks,
-       subject_to_tags_view.tags                   as tags,
-       subject_to_brand_preview_view.brand_preview as brand_preview,
-       image.location                              as image_location
+select subject.id                  as id,
+       subject.name                as name,
+       subject.is_shown            as is_shown,
+       subject_to_marks_view.marks as marks,
+       subject_to_tags_view.tags   as tags,
+       brand.id                    as brand_id,
+       brand.name                  as brand_name,
+       image.location              as image_location
 
 from subject
+         join brand on brand.id = subject.brand_id
          join subject_to_marks_view on subject.id = subject_to_marks_view.subject_id
          join subject_to_tags_view on subject.id = subject_to_tags_view.subject_id
-         join subject_to_brand_preview_view on subject.id = subject_to_brand_preview_view.subject_id
          left join image on subject.primary_image_id = image.id;

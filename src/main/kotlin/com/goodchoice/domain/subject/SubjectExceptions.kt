@@ -16,7 +16,8 @@ class ReviewsCountNegativeException(val count: Int) : SubjectException()
 class SubjectNotFoundException() : SubjectException()
 
 @ResponseStatus(BAD_REQUEST)
-class InvalidSubjectTagException() : SubjectException()
+class InvalidAddedSubjectTagException() : SubjectException()
 
+//todo: implement throw InvalidBrandException()
 @ResponseStatus(BAD_REQUEST)
 class InvalidBrandException() : SubjectException()
