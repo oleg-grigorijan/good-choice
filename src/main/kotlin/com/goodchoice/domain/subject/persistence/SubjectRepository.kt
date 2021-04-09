@@ -130,13 +130,6 @@ class SubjectJooqRepository(
                         }
                     }
                     .let { condition ->
-                        if (tagId != null) {
-                            condition.and(SUBJECT_PREVIEW_VIEW.TAGS)
-                        } else {
-                            condition
-                        }
-                    }
-                    .let { condition ->
                         if (query != null) {
                             condition.and(SUBJECT_PREVIEW_VIEW.NAME.likeIgnoreCase("%$query%"))
                         } else {

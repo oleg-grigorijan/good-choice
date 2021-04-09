@@ -1,7 +1,6 @@
 package com.goodchoice.domain.subject
 
 import com.goodchoice.domain.common.ApplicationException
-import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.web.bind.annotation.ResponseStatus
 
@@ -15,9 +14,4 @@ class ReviewsCountNegativeException(val count: Int) : SubjectException()
 @ResponseStatus(NOT_FOUND)
 class SubjectNotFoundException() : SubjectException()
 
-@ResponseStatus(BAD_REQUEST)
 class InvalidAddedSubjectTagException() : SubjectException()
-
-//todo: implement throw InvalidBrandException()
-@ResponseStatus(BAD_REQUEST)
-class InvalidBrandException() : SubjectException()

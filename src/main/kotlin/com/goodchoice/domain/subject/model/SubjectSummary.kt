@@ -1,7 +1,6 @@
 package com.goodchoice.domain.subject.model
 
 import com.goodchoice.domain.common.forbid
-import com.goodchoice.domain.subject.AverageMarkOfBoundsException
 import com.goodchoice.domain.subject.ReviewsCountNegativeException
 
 data class SubjectSummary(
@@ -16,11 +15,5 @@ data class SubjectSummary(
 
     init {
         forbid(reviewsCount < 0) { throw ReviewsCountNegativeException(reviewsCount) }
-        //todo: come up with NaN solution and set appropriate range
-        forbid((averageMark != null) && ((averageMark!! < 1.0) || (averageMark!! > 5))) {
-            throw AverageMarkOfBoundsException(
-                averageMark
-            )
-        }
     }
 }
