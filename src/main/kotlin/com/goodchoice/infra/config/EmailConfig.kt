@@ -1,6 +1,8 @@
 package com.goodchoice.infra.config
 
+import com.goodchoice.domain.common.model.ExternalServicesProperties
 import com.goodchoice.infra.email.model.EmailProperties
+import com.goodchoice.infra.email.model.EmailTemplateCommonInput
 import com.goodchoice.infra.email.service.*
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -14,8 +16,14 @@ import org.thymeleaf.ITemplateEngine as TemplateEngine
 class EmailConfig {
 
     @Bean
-    fun emailTemplateService(templateEngine: TemplateEngine): EmailTemplateService =
-        ThymeleafEmailTemplateService(templateEngine)
+    fun emailTemplateCommonInput(externalServicesProps: ExternalServicesProperties): EmailTemplateCommonInput =
+        EmailTemplateCommonInput(webFrontendUrl = externalServicesProps.webFrontend)
+
+    @Bean
+    fun emailTemplateService(
+        templateEngine: TemplateEngine,
+        commonInput: EmailTemplateCommonInput
+    ): EmailTemplateService = ThymeleafEmailTemplateService(templateEngine, commonInput)
 
     @Bean
     @ConditionalOnProperty(name = ["good-choice.email.mode"], havingValue = "real")
