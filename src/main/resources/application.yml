@@ -14,7 +14,7 @@ spring:
     host: '${EMAIL_HOST:smtp.gmail.com}'
     port: ${EMAIL_PORT:587}
     username: '${good-choice.email.bot.address}'
-    password: '${EMAIL_BOT_PASSWORD}'
+    password: '${BOT_EMAIL_PASSWORD}'
     properties:
       mail:
         smtp:
@@ -30,17 +30,30 @@ springdoc:
   swagger-ui:
     path: '/'
     display-request-duration: true
-    operationsSorter: 'method'
+    operationsSorter: 'alpha'
   show-login-endpoint: true
 
 server.port: ${PORT:443}
 
 good-choice:
+  bootstrap:
+    employee-creation:
+      enabled: ${EMPLOYEE_CREATION_BOOTSTRAP_ENABLED:true}
+      accounts:
+        - role: 'hr'
+          email: '${SUPER_HR_EMAIL_ADDRESS:goodchoice.hr.super@gmail.com}'
+          password: '${SUPER_HR_PASSWORD}'
+          first-name: 'HR'
+          last-name: 'Super'
+
+  external-services:
+    web-frontend: '${WEB_FRONTEND_URL:https://good-choice-web.herokuapp.com}'
+
   email:
     mode: 'real'
     bot:
-      address: '${EMAIL_BOT_ADDRESS:goodchoice.bot@gmail.com}'
+      address: '${BOT_EMAIL_ADDRESS:goodchoice.bot@gmail.com}'
       name: 'GoodChoice Bot'
     help:
-      address: '${EMAIL_HELP_ADDRESS:goodchoice.help@gmail.com}'
+      address: '${HELP_EMAIL_ADDRESS:goodchoice.help@gmail.com}'
       name: 'GoodChoice Help'

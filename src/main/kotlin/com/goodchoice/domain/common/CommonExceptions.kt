@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(INTERNAL_SERVER_ERROR)
 abstract class ApplicationException(
     message: String? = null,
-    cause: Throwable? = null
+    cause: Throwable? = null,
 ) : RuntimeException(message, cause)
 
 
 @ResponseStatus(BAD_REQUEST)
 abstract class FormatException(
     message: String? = null,
-    cause: Throwable? = null
+    cause: Throwable? = null,
 ) : ApplicationException(message, cause)
 
 class StringMaxLengthException(val string: String, val maxLength: Int) : FormatException()
@@ -26,12 +26,7 @@ class InvalidEmailException(val email: String) : FormatException()
 
 class PasswordMinLengthException(val minLength: Int) : FormatException()
 
+class PageOffsetNegativeException : FormatException()
+class PageLimitNegativeException : FormatException()
 
-@ResponseStatus(BAD_REQUEST)
-abstract class PageInfoException(
-    message: String? = null,
-    cause: Throwable? = null
-) : ApplicationException(message, cause)
-
-class PageOffsetNegativeException() : PageInfoException()
-class PageLimitNegativeException() : PageInfoException()
+class UnexpectedUserRoleException : FormatException()

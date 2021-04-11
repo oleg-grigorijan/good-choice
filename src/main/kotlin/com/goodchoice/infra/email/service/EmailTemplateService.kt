@@ -1,6 +1,7 @@
 package com.goodchoice.infra.email.service
 
 import com.goodchoice.infra.email.model.EmailMessageContent
+import com.goodchoice.infra.email.model.EmailTemplateCommonInput
 import com.goodchoice.infra.email.model.EmailTemplateInput
 import com.goodchoice.infra.email.model.EmailTemplateInput.EmployeeInvitation
 import org.thymeleaf.context.Context
@@ -11,7 +12,10 @@ interface EmailTemplateService {
     fun render(input: EmailTemplateInput): EmailMessageContent
 }
 
-class ThymeleafEmailTemplateService(private val templates: TemplateEngine) : EmailTemplateService {
+class ThymeleafEmailTemplateService(
+    private val templates: TemplateEngine,
+    private val commonInput: EmailTemplateCommonInput,
+) : EmailTemplateService {
 
     override fun render(input: EmailTemplateInput): EmailMessageContent =
         when (input) {
@@ -25,5 +29,6 @@ class ThymeleafEmailTemplateService(private val templates: TemplateEngine) : Ema
     private fun renderBody(templateName: String, input: EmailTemplateInput) =
         templates.process(templateName, Context().apply {
             setVariable("input", input)
+            setVariable("common", commonInput)
         })
 }
