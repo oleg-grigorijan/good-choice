@@ -9,7 +9,7 @@ data class PageRequest(
     val limit: Int
 ) {
     init {
-        forbid(offset < 0) { PageOffsetNegativeException(offset) }
-        forbid(limit < 0) { PageLimitNegativeException(limit) }
+        forbid(offset < 0) { PageOffsetNegativeException() }
+        forbid(limit < 0) { PageLimitNegativeException() }
     }
 }

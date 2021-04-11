@@ -9,7 +9,7 @@ data class Page<T>(
     val hasNext: Boolean
 ) {
     init {
-        forbid(offset < 0) { PageOffsetNegativeException(offset) }
+        forbid(offset < 0) { PageOffsetNegativeException() }
     }
 
     val limit: Int
