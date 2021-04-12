@@ -4,12 +4,12 @@ import com.goodchoice.StringMaxLength
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.common.validateSingleLineString
 
-class SubjectModificationRequest(
+data class SubjectModificationRequest(
     val name: String,
     val description: String,
     val brand: Reference,
-    val addedSubjectTags: List<Reference>,
-    val removedSubjectTags: List<Reference>
+    val addedTags: List<Reference>,
+    val removedTags: List<Reference>
 ) {
     init {
         validateSingleLineString(name, StringMaxLength.MEDIUM)

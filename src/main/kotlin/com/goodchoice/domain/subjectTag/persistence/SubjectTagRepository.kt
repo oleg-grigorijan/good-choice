@@ -39,7 +39,7 @@ class SubjectTagJooqRepository(private val db: DSLContext) : SubjectTagRepositor
         val items = db.select()
             .from(SUBJECT_TAG)
             .where(
-                SUBJECT_TAG.NAME.likeIgnoreCase("%$query%")
+                SUBJECT_TAG.NAME.containsIgnoreCase(query)
             )
             .limit(limit + 1)
             .offset(offset)

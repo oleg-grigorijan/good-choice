@@ -30,12 +30,12 @@ class SubjectServiceImpl(
         return subjectRepo.create(
             name = request.name,
             description = request.description,
-            tags = request.subjectTags,
+            tags = request.addedTags,
             brand = request.brand
         )
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     override fun getById(id: UUID): Subject =
         subjectRepo.getByIdOrNull(id) ?: throw SubjectNotFoundException()
 
@@ -47,17 +47,16 @@ class SubjectServiceImpl(
             name = request.name,
             description = request.description,
             brand = request.brand,
-            addedTags = request.addedSubjectTags,
-            removedTags = request.removedSubjectTags
+            addedTags = request.addedTags,
+            removedTags = request.removedTags
         )
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     override fun getAllPreviewsByQuery(subjectQuery: SubjectQuery, pageRequest: PageRequest): Page<SubjectPreview> =
         subjectRepo.getAllPreviewsByQuery(
             query = subjectQuery.query,
             brandId = subjectQuery.brandId,
-            tagId = subjectQuery.subjectTagId,
             pageRequest = pageRequest
         )
 

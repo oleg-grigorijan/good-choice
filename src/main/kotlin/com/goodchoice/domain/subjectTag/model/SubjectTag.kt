@@ -4,7 +4,7 @@ import com.goodchoice.StringMaxLength
 import com.goodchoice.domain.common.validateSingleLineString
 import java.util.*
 
-class SubjectTag(
+data class SubjectTag(
     val id: UUID,
     val name: String,
     val subjectsCount: Int

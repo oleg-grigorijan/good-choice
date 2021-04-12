@@ -6,6 +6,6 @@ import com.goodchoice.domain.subject.MarkOutOfBoundsException
 
 class Mark(@get:JsonValue val value: Int) {
     init {
-        forbid((value < 1) || (value > 5)) { throw MarkOutOfBoundsException(value) }
+        forbid(value in 1..5) { MarkOutOfBoundsException(value) }
     }
 }

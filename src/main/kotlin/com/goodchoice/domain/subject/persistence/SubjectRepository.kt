@@ -6,17 +6,14 @@ import com.goodchoice.domain.common.jooq.Tables.*
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
-import com.goodchoice.domain.subject.InvalidAddedSubjectTagException
 import com.goodchoice.domain.subject.model.Subject
 import com.goodchoice.domain.subject.model.SubjectPreview
 import com.goodchoice.domain.subject.model.SubjectSummary
+import com.goodchoice.infra.common.now
 import com.goodchoice.infra.persistence.read
-import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import org.springframework.dao.DataIntegrityViolationException
 import java.time.Clock
-import java.time.LocalDateTime
 import java.util.*
 
 interface SubjectRepository {
@@ -33,7 +30,6 @@ interface SubjectRepository {
     fun getAllPreviewsByQuery(
         query: String?,
         brandId: UUID?,
-        tagId: UUID?,
         pageRequest: PageRequest
     ): Page<SubjectPreview>
 
@@ -56,16 +52,13 @@ class SubjectJooqRepository(
                 .set(SUBJECT.DESCRIPTION, description)
                 .set(SUBJECT.BRAND_ID, brand.id)
                 .set(SUBJECT.IS_SHOWN, true)
-                .set(SUBJECT.CREATED_TIMESTAMP, LocalDateTime.now(clock))
+                .set(SUBJECT.CREATED_TIMESTAMP, clock.now())
                 .execute()
 
-            try {
-                ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
-                    .apply { tags.forEach { values(id, it.id) } }
-                    .execute()
-            } catch (e: DataIntegrityViolationException) {
-                throw InvalidAddedSubjectTagException()
-            }
+            ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+                .apply { tags.forEach { values(id, it.id) } }
+                .execute()
+
         }
         return Reference(id)
     }
@@ -90,29 +83,30 @@ class SubjectJooqRepository(
                 .where(SUBJECT.ID.eq(id))
                 .execute()
 
-            try {
-                ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
-                    .apply { addedTags.forEach { values(id, it.id) } }
-                    .execute()
-            } catch (e: DataIntegrityViolationException) {
-                throw InvalidAddedSubjectTagException()
-            }
+            ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+                .apply { addedTags.forEach { values(id, it.id) } }
+                .execute()
 
             ctx.delete(SUBJECT_TO_TAG)
-                .where(
-                    SUBJECT_TO_TAG.SUBJECT_ID.eq(id).and(
-                        removedTags.map { SUBJECT_TO_TAG.TAG_ID.eq(it.id) }
-                            .fold(DSL.falseCondition() as Condition) { ac, e -> ac.or(e) }
-                    )
+                .where(SUBJECT_TO_TAG.SUBJECT_ID.eq(id)
+                    .and(SUBJECT_TO_TAG.TAG_ID.`in`(removedTags.map { it.id }))
                 )
                 .execute()
+
+//            ctx.delete(SUBJECT_TO_TAG)
+//                .where(
+//                    SUBJECT_TO_TAG.SUBJECT_ID.eq(id).and(
+//                        removedTags.map { SUBJECT_TO_TAG.TAG_ID.eq(it.id) }
+//                            .fold(DSL.falseCondition() as Condition) { ac, e -> ac.or(e) }
+//                    )
+//                )
+//                .execute()
         }
     }
 
     override fun getAllPreviewsByQuery(
         query: String?,
         brandId: UUID?,
-        tagId: UUID?,
         pageRequest: PageRequest
     ): Page<SubjectPreview> {
         val limit = pageRequest.limit
@@ -131,7 +125,7 @@ class SubjectJooqRepository(
                     }
                     .let { condition ->
                         if (query != null) {
-                            condition.and(SUBJECT_PREVIEW_VIEW.NAME.likeIgnoreCase("%$query%"))
+                            condition.and(SUBJECT_PREVIEW_VIEW.NAME.containsIgnoreCase(query))
                         } else {
                             condition
                         }
@@ -145,8 +139,8 @@ class SubjectJooqRepository(
                     id = it[SUBJECT_PREVIEW_VIEW.ID],
                     name = it[SUBJECT_PREVIEW_VIEW.NAME],
                     brand = BrandPreview(it[SUBJECT_PREVIEW_VIEW.BRAND_ID], it[SUBJECT_PREVIEW_VIEW.BRAND_NAME]),
-                    summary = SubjectSummary(it[SUBJECT_PREVIEW_VIEW.MARKS].read(objectMapper)),
-                    subjectTags = it[SUBJECT_PREVIEW_VIEW.TAGS].read(objectMapper)
+                    summary = SubjectSummary(objectMapper.read(it[SUBJECT_PREVIEW_VIEW.MARKS])),
+                    subjectTags = objectMapper.read(it[SUBJECT_PREVIEW_VIEW.TAGS])
                 )
             }
         var hasNext = false
@@ -163,7 +157,7 @@ class SubjectJooqRepository(
             .from(SUBJECT_FULL_VIEW)
             .where(
                 SUBJECT_FULL_VIEW.ID.eq(id)
-                    .and(SUBJECT_FULL_VIEW.IS_SHOWN.eq(true))
+                    .and(SUBJECT_FULL_VIEW.IS_SHOWN)
             )
             .fetchOne()
             ?.map {
@@ -171,9 +165,9 @@ class SubjectJooqRepository(
                     id = it[SUBJECT_FULL_VIEW.ID],
                     name = it[SUBJECT_FULL_VIEW.NAME],
                     brand = BrandPreview(it[SUBJECT_FULL_VIEW.BRAND_ID], it[SUBJECT_FULL_VIEW.BRAND_NAME]),
-                    summary = SubjectSummary(it[SUBJECT_FULL_VIEW.MARKS].read(objectMapper)),
+                    summary = SubjectSummary(objectMapper.read(it[SUBJECT_FULL_VIEW.MARKS])),
                     description = it[SUBJECT.DESCRIPTION],
-                    subjectTags = it[SUBJECT_FULL_VIEW.TAGS].read(objectMapper)
+                    subjectTags = objectMapper.read(it[SUBJECT_FULL_VIEW.TAGS])
                 )
             }
     }

@@ -8,6 +8,6 @@ data class SubjectSummary(
         get() = marks.map { it.count }.sum()
 
     val averageMark: Double?
-        get() = (marks.map { it.value.value * it.count }.sum().toDouble() / reviewsCount).takeIf { it.isFinite() }
+        get() = marks.map { it.value.value * it.count }.sum().toDouble().div(reviewsCount).takeIf { it.isFinite() }
 
 }

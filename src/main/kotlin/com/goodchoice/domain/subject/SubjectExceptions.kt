@@ -9,9 +9,5 @@ abstract class SubjectException(
     cause: Throwable? = null
 ) : ApplicationException(message, cause)
 
-class ReviewsCountNegativeException(val count: Int) : SubjectException()
-
 @ResponseStatus(NOT_FOUND)
 class SubjectNotFoundException() : SubjectException()
-
-class InvalidAddedSubjectTagException() : SubjectException()
