@@ -12,7 +12,6 @@ import com.goodchoice.domain.subject.model.SubjectSummary
 import com.goodchoice.infra.common.now
 import com.goodchoice.infra.persistence.read
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import java.time.Clock
 import java.util.*
 
@@ -44,22 +43,19 @@ class SubjectJooqRepository(
     override fun create(name: String, description: String, tags: List<Reference>, brand: Reference): Reference {
         val id = UUID.randomUUID()
 
-        db.transaction { configuration ->
-            val ctx = DSL.using(configuration)
-            ctx.insertInto(SUBJECT)
-                .set(SUBJECT.ID, id)
-                .set(SUBJECT.NAME, name)
-                .set(SUBJECT.DESCRIPTION, description)
-                .set(SUBJECT.BRAND_ID, brand.id)
-                .set(SUBJECT.IS_SHOWN, true)
-                .set(SUBJECT.CREATED_TIMESTAMP, clock.now())
-                .execute()
+        db.insertInto(SUBJECT)
+            .set(SUBJECT.ID, id)
+            .set(SUBJECT.NAME, name)
+            .set(SUBJECT.DESCRIPTION, description)
+            .set(SUBJECT.BRAND_ID, brand.id)
+            .set(SUBJECT.IS_SHOWN, true)
+            .set(SUBJECT.CREATED_TIMESTAMP, clock.now())
+            .execute()
 
-            ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
-                .apply { tags.forEach { values(id, it.id) } }
-                .execute()
+        db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+            .apply { tags.forEach { values(id, it.id) } }
+            .execute()
 
-        }
         return Reference(id)
     }
 
@@ -72,36 +68,26 @@ class SubjectJooqRepository(
         removedTags: List<Reference>
     ) {
 
-        db.transaction { configuration ->
-            val ctx = DSL.using(configuration)
 
-            ctx.update(SUBJECT)
-                .set(SUBJECT.ID, id)
-                .set(SUBJECT.NAME, name)
-                .set(SUBJECT.DESCRIPTION, description)
-                .set(SUBJECT.BRAND_ID, brand.id)
-                .where(SUBJECT.ID.eq(id))
-                .execute()
+        db.update(SUBJECT)
+            .set(SUBJECT.ID, id)
+            .set(SUBJECT.NAME, name)
+            .set(SUBJECT.DESCRIPTION, description)
+            .set(SUBJECT.BRAND_ID, brand.id)
+            .where(SUBJECT.ID.eq(id))
+            .execute()
 
-            ctx.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
-                .apply { addedTags.forEach { values(id, it.id) } }
-                .execute()
+        db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
+            .apply { addedTags.forEach { values(id, it.id) } }
+            .execute()
 
-            ctx.delete(SUBJECT_TO_TAG)
-                .where(SUBJECT_TO_TAG.SUBJECT_ID.eq(id)
+        db.delete(SUBJECT_TO_TAG)
+            .where(
+                SUBJECT_TO_TAG.SUBJECT_ID.eq(id)
                     .and(SUBJECT_TO_TAG.TAG_ID.`in`(removedTags.map { it.id }))
-                )
-                .execute()
+            )
+            .execute()
 
-//            ctx.delete(SUBJECT_TO_TAG)
-//                .where(
-//                    SUBJECT_TO_TAG.SUBJECT_ID.eq(id).and(
-//                        removedTags.map { SUBJECT_TO_TAG.TAG_ID.eq(it.id) }
-//                            .fold(DSL.falseCondition() as Condition) { ac, e -> ac.or(e) }
-//                    )
-//                )
-//                .execute()
-        }
     }
 
     override fun getAllPreviewsByQuery(
