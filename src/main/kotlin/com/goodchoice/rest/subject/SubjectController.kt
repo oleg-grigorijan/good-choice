@@ -23,7 +23,7 @@ class SubjectController(private val subjectService: SubjectService) {
     fun getById(@PathVariable id: UUID): Subject =
         subjectService.getById(id)
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @RequireSecurity
     @Operation(summary = "Update subject")

@@ -70,7 +70,6 @@ class SubjectJooqRepository(
 
 
         db.update(SUBJECT)
-            .set(SUBJECT.ID, id)
             .set(SUBJECT.NAME, name)
             .set(SUBJECT.DESCRIPTION, description)
             .set(SUBJECT.BRAND_ID, brand.id)
