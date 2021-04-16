@@ -44,7 +44,7 @@ class BrandJooqRepository(private val db: DSLContext) : BrandRepository {
             .from(BRAND)
             .where(
                 BRAND.IS_ACTIVE.eq(true)
-                    .and(BRAND.NAME.like("%$query%"))
+                    .and(BRAND.NAME.likeIgnoreCase("%$query%"))
             )
             .limit(limit + 1)
             .offset(offset)
