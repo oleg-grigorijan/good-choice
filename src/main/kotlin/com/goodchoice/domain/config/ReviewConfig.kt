@@ -1,5 +1,6 @@
 package com.goodchoice.domain.config
 
+import com.goodchoice.domain.auth.service.AuthContext
 import com.goodchoice.domain.review.persistence.ReviewJooqRepository
 import com.goodchoice.domain.review.persistence.ReviewRepository
 import com.goodchoice.domain.review.service.ReviewService
@@ -12,7 +13,8 @@ import java.time.Clock
 @Configuration
 class ReviewConfig {
     @Bean
-    fun reviewService(reviewRepository: ReviewRepository): ReviewService = ReviewServiceImpl(reviewRepository)
+    fun reviewService(reviewRepository: ReviewRepository, authContext: AuthContext): ReviewService =
+        ReviewServiceImpl(reviewRepository, authContext)
 
     @Bean
     fun reviewRepo(db: DSLContext, clock: Clock): ReviewRepository = ReviewJooqRepository(db, clock)

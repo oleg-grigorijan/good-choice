@@ -1,9 +1,10 @@
 package com.goodchoice.domain.review.persistence
 
-import com.goodchoice.domain.common.jooq.Tables
-import com.goodchoice.domain.common.jooq.enums.ReviewPointType
+import com.goodchoice.domain.common.jooq.Tables.*
+import com.goodchoice.domain.common.jooq.enums.ReviewPointType.ADVANTAGE
+import com.goodchoice.domain.common.jooq.enums.ReviewPointType.DISADVANTAGE
 import com.goodchoice.domain.common.model.Reference
-import com.goodchoice.domain.review.model.ReviewBodyCreationRequest
+import com.goodchoice.domain.review.model.*
 import com.goodchoice.domain.subject.model.Mark
 import com.goodchoice.infra.common.now
 import org.jooq.DSLContext
@@ -20,6 +21,10 @@ interface ReviewRepository {
         mark: Mark,
         body: ReviewBodyCreationRequest
     ): Reference
+
+    fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
+    fun getVotesByReviewIdOrNull(reviewId: UUID, issuerId: UUID): ReviewVotes?
+    fun removeVote(reviewId: UUID, issuerId: UUID)
 }
 
 class ReviewJooqRepository(private val db: DSLContext, private val clock: Clock) : ReviewRepository {
@@ -35,40 +40,78 @@ class ReviewJooqRepository(private val db: DSLContext, private val clock: Clock)
         val reviewId = UUID.randomUUID()
         val reviewBodyId = UUID.randomUUID()
 
-        db.insertInto(Tables.REVIEW)
-            .set(Tables.REVIEW.ID, reviewId)
-            .set(Tables.REVIEW.TITLE, title)
-            .set(Tables.REVIEW.SUBJECT_ID, subject.id)
-            .set(Tables.REVIEW.MARK, mark.value)
-            .set(Tables.REVIEW.IS_SHOWN, true)
+        //todo: fix NullPointer on .execute() when author is administrator
+        db.insertInto(REVIEW)
+            .set(REVIEW.ID, reviewId)
+            .set(REVIEW.TITLE, title)
+            .set(REVIEW.SUBJECT_ID, subject.id)
+            .set(REVIEW.MARK, mark.value)
+            .set(REVIEW.REVIEWER_ID, author.id)
+            .set(REVIEW.IS_SHOWN, true)
             .execute()
 
-        db.insertInto(Tables.REVIEW_BODY)
-            .set(Tables.REVIEW_BODY.ID, reviewBodyId)
-            .set(Tables.REVIEW_BODY.CONTENT, body.content)
-            .set(Tables.REVIEW_BODY.CREATED_TIMESTAMP, clock.now())
-            .set(Tables.REVIEW_BODY.REVIEW_ID, reviewId)
+        db.insertInto(REVIEW_BODY)
+            .set(REVIEW_BODY.ID, reviewBodyId)
+            .set(REVIEW_BODY.CONTENT, body.content)
+            .set(REVIEW_BODY.CREATED_TIMESTAMP, clock.now())
+            .set(REVIEW_BODY.REVIEW_ID, reviewId)
             .execute()
 
-        var i: Int = 0
+        var ordering = 0
         db.insertInto(
-            Tables.REVIEW_POINT,
-            Tables.REVIEW_POINT.CONTENT,
-            Tables.REVIEW_POINT.ORDERING,
-            Tables.REVIEW_POINT.REVIEW_ID,
-            Tables.REVIEW_POINT.TYPE
-        ).apply { advantages.forEach { values(it, i++, reviewId, ReviewPointType.ADVANTAGE) } }
-            .execute()
-        db.insertInto(
-            Tables.REVIEW_POINT,
-            Tables.REVIEW_POINT.CONTENT,
-            Tables.REVIEW_POINT.ORDERING,
-            Tables.REVIEW_POINT.REVIEW_ID,
-            Tables.REVIEW_POINT.TYPE
-        ).apply { disadvantages.forEach { values(it, i++, reviewId, ReviewPointType.DISADVANTAGE) } }
+            REVIEW_POINT,
+            REVIEW_POINT.CONTENT,
+            REVIEW_POINT.ORDERING,
+            REVIEW_POINT.REVIEW_ID,
+            REVIEW_POINT.TYPE
+        ).apply { advantages.forEach { values(it, ordering++, reviewId, ADVANTAGE) } }
+            .apply { disadvantages.forEach { values(it, ordering++, reviewId, DISADVANTAGE) } }
             .execute()
 
         return Reference(reviewId)
     }
 
+    override fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType) {
+        db.insertInto(REVIEW_VOTE, REVIEW_VOTE.REVIEWER_ID, REVIEW_VOTE.REVIEW_ID, REVIEW_VOTE.TYPE)
+            .values(issuerId, reviewId, voteType.asJooqVoteType())
+            .onDuplicateKeyUpdate()
+            .set(REVIEW_VOTE.REVIEWER_ID, issuerId)
+            .set(REVIEW_VOTE.REVIEW_ID, reviewId)
+            .set(REVIEW_VOTE.TYPE, voteType.asJooqVoteType())
+            .execute()
+    }
+
+    override fun getVotesByReviewIdOrNull(reviewId: UUID, issuerId: UUID): ReviewVotes? {
+
+        //todo: check when selectCount fetches null
+
+        //returns null when no reviews with reviewId
+        db.selectFrom(REVIEW).where(REVIEW.ID.eq(reviewId)).fetchOne() ?: return null
+
+        val upvotesCount = db.selectCount().from(REVIEW_VOTE)
+            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
+            .and(REVIEW_VOTE.TYPE.eq(VoteType.UP.asJooqVoteType()))
+            .fetchOne(0, Int::class.java) ?: 0
+
+        val downvotesCount = db.selectCount().from(REVIEW_VOTE)
+            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
+            .and(REVIEW_VOTE.TYPE.eq(VoteType.DOWN.asJooqVoteType()))
+            .fetchOne(0, Int::class.java) ?: 0
+
+        val own = db.selectFrom(REVIEW_VOTE)
+            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
+            .and(REVIEW_VOTE.REVIEWER_ID.eq(issuerId))
+            .fetchOne()
+            ?.map { Vote(it[REVIEW_VOTE.TYPE].asVoteType()) }
+
+        return ReviewVotes(upvotesCount, downvotesCount, own)
+
+    }
+
+    override fun removeVote(reviewId: UUID, issuerId: UUID) {
+        db.deleteFrom(REVIEW_VOTE)
+            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
+            .and(REVIEW_VOTE.REVIEWER_ID.eq(issuerId))
+            .execute()
+    }
 }

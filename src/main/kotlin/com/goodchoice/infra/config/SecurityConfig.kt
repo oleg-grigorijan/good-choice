@@ -28,6 +28,7 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
     override fun configure(http: HttpSecurity) {
         http {
             authorizeRequests {
+
                 // Swagger
                 authorize(GET, "/", permitAll)
                 authorize(GET, "/swagger-ui/**", permitAll)
@@ -48,6 +49,10 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                 // Subject tags
                 authorize(GET, "/subjects/tags", permitAll)
                 authorize(GET, "/subjects/tags/*", permitAll)
+
+                // Reviews
+//                authorize(POST, "/reviews", permitAll)
+
 
                 authorize("/**", authenticated)
             }
