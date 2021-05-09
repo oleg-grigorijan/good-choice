@@ -15,6 +15,6 @@ interface ImageService {
 class ImageServiceImpl(private val imageRepo: ImageRepository, private val authService: AuthService) : ImageService {
     override fun add(request: ImageModificationRequest): Reference {
         authService.currentAuth.requireAnyRole(setOf(REVIEWER, ADMINISTRATOR))
-        return imageRepo.add(request.source)
+        return imageRepo.add(request.location)
     }
 }
