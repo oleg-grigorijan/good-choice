@@ -1,7 +1,9 @@
 package com.goodchoice.infra.config
 
 import com.goodchoice.domain.auth.service.AuthService
+import com.goodchoice.domain.common.model.ExternalServicesProperties
 import com.goodchoice.infra.security.AuthUserDetailsService
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod.GET
 import org.springframework.http.HttpMethod.POST
@@ -16,10 +18,19 @@ import org.springframework.security.config.web.servlet.invoke
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
+import org.springframework.web.servlet.config.annotation.CorsRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(private val authService: AuthService) : WebSecurityConfigurerAdapter() {
+
+    @Bean
+    fun corsConfigurer(externalServicesProps: ExternalServicesProperties) = object : WebMvcConfigurer {
+        override fun addCorsMappings(registry: CorsRegistry) {
+            registry.addMapping("/**").allowedOrigins(externalServicesProps.webFrontend)
+        }
+    }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth.userDetailsService(AuthUserDetailsService(authService))
