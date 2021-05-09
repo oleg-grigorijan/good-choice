@@ -1,6 +1,8 @@
 package com.goodchoice.domain.review.service
 
-import com.goodchoice.domain.auth.service.AuthContext
+import com.goodchoice.domain.auth.model.UserRole.REVIEWER
+import com.goodchoice.domain.auth.model.requireRole
+import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
@@ -21,36 +23,38 @@ interface ReviewService {
     fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review>
 }
 
-class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val authContext: AuthContext) :
+class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val authService: AuthService) :
     ReviewService {
 
     @Transactional
-    override fun create(request: ReviewModificationRequest): Reference =
-        reviewRepo.create(
+    override fun create(request: ReviewModificationRequest): Reference {
+        authService.currentAuth.requireRole(REVIEWER)
+        return reviewRepo.create(
             title = request.title,
-            author = Reference(authContext.currentAuth.id),
+            author = Reference(authService.currentAuth.id),
             subject = request.subject,
             advantages = request.advantages,
             disadvantages = request.disadvantages,
             mark = request.mark,
             body = request.body
         )
+    }
 
     @Transactional
     override fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotes {
-        reviewRepo.vote(reviewId, authContext.currentAuth.id, request.type)
-        return reviewRepo.getVotesByReviewIdOrNull(reviewId, authContext.currentAuth.id)
+        reviewRepo.vote(reviewId, authService.currentAuth.id, request.type)
+        return reviewRepo.getVotesByReviewIdOrNull(reviewId, authService.currentAuth.id)
             ?: throw ReviewNotFoundException()
     }
 
     @Transactional
     override fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotes {
-        reviewRepo.removeVote(reviewId, authContext.currentAuth.id)
-        return reviewRepo.getVotesByReviewIdOrNull(reviewId, authContext.currentAuth.id)
+        reviewRepo.removeVote(reviewId, authService.currentAuth.id)
+        return reviewRepo.getVotesByReviewIdOrNull(reviewId, authService.currentAuth.id)
             ?: throw ReviewNotFoundException()
     }
 
     @Transactional(readOnly = true)
     override fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review> =
-        reviewRepo.getAllBySubject(subject.id, mark, authContext.currentAuthOrNull?.id, pageRequest)
+        reviewRepo.getAllBySubject(subject.id, mark, authService.currentAuthOrNull?.id, pageRequest)
 }

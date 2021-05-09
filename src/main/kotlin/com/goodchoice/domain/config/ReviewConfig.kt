@@ -1,7 +1,7 @@
 package com.goodchoice.domain.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.goodchoice.domain.auth.service.AuthContext
+import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.review.persistence.ReviewJooqRepository
 import com.goodchoice.domain.review.persistence.ReviewRepository
 import com.goodchoice.domain.review.service.ReviewService
@@ -14,8 +14,8 @@ import java.time.Clock
 @Configuration
 class ReviewConfig {
     @Bean
-    fun reviewService(reviewRepository: ReviewRepository, authContext: AuthContext): ReviewService =
-        ReviewServiceImpl(reviewRepository, authContext)
+    fun reviewService(reviewRepository: ReviewRepository, authService: AuthService): ReviewService =
+        ReviewServiceImpl(reviewRepository, authService)
 
     @Bean
     fun reviewRepo(db: DSLContext, clock: Clock, objectMapper: ObjectMapper): ReviewRepository =

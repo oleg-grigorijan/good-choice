@@ -9,6 +9,7 @@ import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.review.model.*
 import com.goodchoice.domain.subject.model.Mark
+import com.goodchoice.domain.user.model.UserPreview
 import com.goodchoice.infra.common.now
 import com.goodchoice.infra.persistence.read
 import org.jooq.DSLContext
@@ -27,9 +28,9 @@ interface ReviewRepository {
     ): Reference
 
     fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
-    fun getVotesByReviewIdOrNull(reviewId: UUID, issuerId: UUID): ReviewVotes?
-    fun removeVote(reviewId: UUID, issuerId: UUID)
-    fun getAllBySubject(subjectId: UUID, mark: Mark?, issuerId: UUID?, pageRequest: PageRequest): Page<Review>
+    fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotes?
+    fun removeVote(reviewId: UUID, reviewerId: UUID)
+    fun getAllBySubject(subjectId: UUID, mark: Mark?, reviewerId: UUID?, pageRequest: PageRequest): Page<Review>
 }
 
 class ReviewJooqRepository(
@@ -89,8 +90,8 @@ class ReviewJooqRepository(
             .execute()
     }
 
-    override fun getVotesByReviewIdOrNull(reviewId: UUID, issuerId: UUID): ReviewVotes? {
-        return db.selectFrom(GET_REVIEW_VOTES_BY_ACTOR(issuerId))
+    override fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotes? {
+        return db.selectFrom(GET_REVIEW_VOTES_BY_ACTOR(reviewerId))
             .where(GET_REVIEW_VOTES_BY_ACTOR.REVIEW_ID.eq(reviewId)).fetchOne()?.map {
                 ReviewVotes(
                     it[GET_REVIEW_VOTES_BY_ACTOR.UPVOTES_COUNT],
@@ -100,23 +101,22 @@ class ReviewJooqRepository(
             }
     }
 
-    override fun removeVote(reviewId: UUID, issuerId: UUID) {
+    override fun removeVote(reviewId: UUID, reviewerId: UUID) {
         db.deleteFrom(REVIEW_VOTE)
-            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
-            .and(REVIEW_VOTE.REVIEWER_ID.eq(issuerId))
+            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId).and(REVIEW_VOTE.REVIEWER_ID.eq(reviewerId)))
             .execute()
     }
 
     override fun getAllBySubject(
         subjectId: UUID,
         mark: Mark?,
-        issuerId: UUID?,
+        reviewerId: UUID?,
         pageRequest: PageRequest
     ): Page<Review> {
 
         val limit = pageRequest.limit
         val offset = pageRequest.offset
-        val items = db.selectFrom(GET_REVIEW_FULL_VIEW_BY_ACTOR(issuerId))
+        val items = db.selectFrom(GET_REVIEW_FULL_VIEW_BY_ACTOR(reviewerId))
             .where(
                 GET_REVIEW_FULL_VIEW_BY_ACTOR.IS_SHOWN.eq(true)
                     .and(GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID.eq(subjectId))
@@ -124,9 +124,9 @@ class ReviewJooqRepository(
                         if (mark != null) {
                             condition.and(GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK.eq(mark.value))
                         } else {
-                        condition
+                            condition
+                        }
                     }
-                }
             )
             .limit(limit + 1)
             .offset(offset)
@@ -136,7 +136,7 @@ class ReviewJooqRepository(
                     id = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ID],
                     title = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.TITLE],
                     subject = Reference(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID]),
-                    author = ReviewAuthor(
+                    author = UserPreview(
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID],
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_FIRST_NAME],
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_LAST_NAME]

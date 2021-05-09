@@ -1,19 +1,21 @@
 package com.goodchoice.domain.review.model
 
+import com.goodchoice.domain.common.jooq.enums.VoteType as JooqVoteType
+
 enum class VoteType {
     UP, DOWN
 }
 
-fun VoteType.asJooqVoteType(): com.goodchoice.domain.common.jooq.enums.VoteType {
+fun VoteType.asJooqVoteType(): JooqVoteType {
     return when (this) {
-        VoteType.DOWN -> com.goodchoice.domain.common.jooq.enums.VoteType.DOWN
-        VoteType.UP -> com.goodchoice.domain.common.jooq.enums.VoteType.UP
+        VoteType.DOWN -> JooqVoteType.DOWN
+        VoteType.UP -> JooqVoteType.UP
     }
 }
 
-fun com.goodchoice.domain.common.jooq.enums.VoteType.asVoteType(): VoteType {
+fun JooqVoteType.asVoteType(): VoteType {
     return when (this) {
-        com.goodchoice.domain.common.jooq.enums.VoteType.DOWN -> VoteType.DOWN
-        com.goodchoice.domain.common.jooq.enums.VoteType.UP -> VoteType.UP
+        JooqVoteType.DOWN -> VoteType.DOWN
+        JooqVoteType.UP -> VoteType.UP
     }
 }

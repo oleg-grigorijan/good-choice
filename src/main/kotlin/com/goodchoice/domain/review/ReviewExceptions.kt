@@ -1,6 +1,8 @@
 package com.goodchoice.domain.review
 
 import com.goodchoice.domain.common.ApplicationException
+import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.web.bind.annotation.ResponseStatus
 
 
 abstract class ReviewException(
@@ -8,6 +10,7 @@ abstract class ReviewException(
     cause: Throwable? = null
 ) : ApplicationException(message, cause)
 
-class ReviewUpvotesCountOutOfBoundsException(val value: Long) : ReviewException()
-class ReviewDownvotesCountOutOfBoundsException(val value: Long) : ReviewException()
+class ReviewVotesCountOutOfBoundsException(val value: Long) : ReviewException()
+
+@ResponseStatus(NOT_FOUND)
 class ReviewNotFoundException() : ReviewException()
