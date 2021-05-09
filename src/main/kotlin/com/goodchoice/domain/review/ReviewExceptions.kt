@@ -8,6 +8,6 @@ abstract class ReviewException(
     cause: Throwable? = null
 ) : ApplicationException(message, cause)
 
-class ReviewUpvotesCountOutOfBoundsException(val value: Int) : ReviewException()
-class ReviewDownvotesCountOutOfBoundsException(val value: Int) : ReviewException()
+class ReviewUpvotesCountOutOfBoundsException(val value: Long) : ReviewException()
+class ReviewDownvotesCountOutOfBoundsException(val value: Long) : ReviewException()
 class ReviewNotFoundException() : ReviewException()

@@ -1,12 +1,16 @@
 package com.goodchoice.domain.review.service
 
 import com.goodchoice.domain.auth.service.AuthContext
+import com.goodchoice.domain.common.model.Page
+import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.review.ReviewNotFoundException
+import com.goodchoice.domain.review.model.Review
 import com.goodchoice.domain.review.model.ReviewModificationRequest
 import com.goodchoice.domain.review.model.ReviewVotes
 import com.goodchoice.domain.review.model.Vote
 import com.goodchoice.domain.review.persistence.ReviewRepository
+import com.goodchoice.domain.subject.model.Mark
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
@@ -14,10 +18,7 @@ interface ReviewService {
     fun create(request: ReviewModificationRequest): Reference
     fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotes
     fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotes
-//    fun getById(id: UUID): Review
-//    fun update(id: UUID, request: ReviewModificationRequest)
-//    fun getAllPreviewsByQuery(subjectQuery: SubjectQuery, pageRequest: PageRequest): Page<SubjectPreview>
-
+    fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review>
 }
 
 class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val authContext: AuthContext) :
@@ -48,4 +49,8 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
         return reviewRepo.getVotesByReviewIdOrNull(reviewId, authContext.currentAuth.id)
             ?: throw ReviewNotFoundException()
     }
+
+    @Transactional(readOnly = true)
+    override fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review> =
+        reviewRepo.getAllBySubject(subject.id, mark, authContext.currentAuth.id, pageRequest)
 }

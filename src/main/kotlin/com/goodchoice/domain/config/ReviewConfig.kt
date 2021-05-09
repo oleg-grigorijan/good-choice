@@ -1,5 +1,6 @@
 package com.goodchoice.domain.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.goodchoice.domain.auth.service.AuthContext
 import com.goodchoice.domain.review.persistence.ReviewJooqRepository
 import com.goodchoice.domain.review.persistence.ReviewRepository
@@ -17,5 +18,6 @@ class ReviewConfig {
         ReviewServiceImpl(reviewRepository, authContext)
 
     @Bean
-    fun reviewRepo(db: DSLContext, clock: Clock): ReviewRepository = ReviewJooqRepository(db, clock)
+    fun reviewRepo(db: DSLContext, clock: Clock, objectMapper: ObjectMapper): ReviewRepository =
+        ReviewJooqRepository(db, clock, objectMapper)
 }

@@ -1,12 +1,16 @@
 package com.goodchoice.domain.review.persistence
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.goodchoice.domain.common.jooq.Tables.*
 import com.goodchoice.domain.common.jooq.enums.ReviewPointType.ADVANTAGE
 import com.goodchoice.domain.common.jooq.enums.ReviewPointType.DISADVANTAGE
+import com.goodchoice.domain.common.model.Page
+import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.review.model.*
 import com.goodchoice.domain.subject.model.Mark
 import com.goodchoice.infra.common.now
+import com.goodchoice.infra.persistence.read
 import org.jooq.DSLContext
 import java.time.Clock
 import java.util.*
@@ -25,9 +29,14 @@ interface ReviewRepository {
     fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
     fun getVotesByReviewIdOrNull(reviewId: UUID, issuerId: UUID): ReviewVotes?
     fun removeVote(reviewId: UUID, issuerId: UUID)
+    fun getAllBySubject(subjectId: UUID, mark: Mark?, issuerId: UUID, pageRequest: PageRequest): Page<Review>
 }
 
-class ReviewJooqRepository(private val db: DSLContext, private val clock: Clock) : ReviewRepository {
+class ReviewJooqRepository(
+    private val db: DSLContext,
+    private val clock: Clock,
+    private val objectMapper: ObjectMapper
+) : ReviewRepository {
     override fun create(
         title: String,
         author: Reference,
@@ -82,30 +91,14 @@ class ReviewJooqRepository(private val db: DSLContext, private val clock: Clock)
     }
 
     override fun getVotesByReviewIdOrNull(reviewId: UUID, issuerId: UUID): ReviewVotes? {
-
-        //todo: check when selectCount fetches null
-
-        //returns null when no reviews with reviewId
-        db.selectFrom(REVIEW).where(REVIEW.ID.eq(reviewId)).fetchOne() ?: return null
-
-        val upvotesCount = db.selectCount().from(REVIEW_VOTE)
-            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
-            .and(REVIEW_VOTE.TYPE.eq(VoteType.UP.asJooqVoteType()))
-            .fetchOne(0, Int::class.java) ?: 0
-
-        val downvotesCount = db.selectCount().from(REVIEW_VOTE)
-            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
-            .and(REVIEW_VOTE.TYPE.eq(VoteType.DOWN.asJooqVoteType()))
-            .fetchOne(0, Int::class.java) ?: 0
-
-        val own = db.selectFrom(REVIEW_VOTE)
-            .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
-            .and(REVIEW_VOTE.REVIEWER_ID.eq(issuerId))
-            .fetchOne()
-            ?.map { Vote(it[REVIEW_VOTE.TYPE].asVoteType()) }
-
-        return ReviewVotes(upvotesCount, downvotesCount, own)
-
+        return db.selectFrom(GET_REVIEW_VOTES_BY_ACTOR(issuerId))
+            .where(GET_REVIEW_VOTES_BY_ACTOR.REVIEW_ID.eq(reviewId)).fetchOne()?.map {
+                ReviewVotes(
+                    it[GET_REVIEW_VOTES_BY_ACTOR.UPVOTES_COUNT],
+                    it[GET_REVIEW_VOTES_BY_ACTOR.DOWNVOTES_COUNT],
+                    Vote(it[GET_REVIEW_VOTES_BY_ACTOR.OWN_VOTE].asVoteType())
+                )
+            }
     }
 
     override fun removeVote(reviewId: UUID, issuerId: UUID) {
@@ -113,5 +106,55 @@ class ReviewJooqRepository(private val db: DSLContext, private val clock: Clock)
             .where(REVIEW_VOTE.REVIEW_ID.eq(reviewId))
             .and(REVIEW_VOTE.REVIEWER_ID.eq(issuerId))
             .execute()
+    }
+
+    override fun getAllBySubject(subjectId: UUID, mark: Mark?, issuerId: UUID, pageRequest: PageRequest): Page<Review> {
+
+        val limit = pageRequest.limit
+        val offset = pageRequest.offset
+        val items = db.selectFrom(GET_REVIEW_FULL_VIEW_BY_ACTOR(issuerId))
+            .where(GET_REVIEW_FULL_VIEW_BY_ACTOR.IS_SHOWN.eq(true)
+                .and(GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID.eq(subjectId))
+                .let { condition ->
+                    if (mark != null) {
+                        condition.and(GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK.eq(mark.value))
+                    } else {
+                        condition
+                    }
+                }
+            )
+            .limit(limit + 1)
+            .offset(offset)
+            .fetch()
+            .map {
+                Review(
+                    id = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ID],
+                    title = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.TITLE],
+                    subject = Reference(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID]),
+                    author = ReviewAuthor(
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_FIRST_NAME],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_LAST_NAME]
+                    ),
+                    mark = Mark(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK]),
+                    advantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ADVANTAGES]),
+                    disadvantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
+                    bodies = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
+                    votes = ReviewVotes(
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.UPVOTES_COUNT],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DOWNVOTES_COUNT],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.OWN_VOTE]?.let {
+                            Vote(it.asVoteType())
+                        }
+                    )
+                )
+            }
+
+        var hasNext = false
+        if (items.size == limit + 1) {
+            items.removeLast()
+            hasNext = true
+        }
+        return Page(offset, items, hasNext)
     }
 }
