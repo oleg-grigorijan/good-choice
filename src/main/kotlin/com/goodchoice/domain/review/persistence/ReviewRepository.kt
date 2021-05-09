@@ -144,7 +144,7 @@ class ReviewJooqRepository(
                     mark = Mark(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK]),
                     advantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ADVANTAGES]),
                     disadvantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
-                    bodies = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
+                    bodies = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.BODIES]),
                     votes = ReviewVotes(
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.UPVOTES_COUNT],
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DOWNVOTES_COUNT],
