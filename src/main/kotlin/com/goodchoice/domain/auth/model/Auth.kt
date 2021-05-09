@@ -15,5 +15,12 @@ interface Auth {
 }
 
 fun Auth.requireRole(expectedRole: UserRole) {
-    if (expectedRole != this.role) throw UserRoleRequiredException(actual = this.role, expected = expectedRole)
+    if (expectedRole != this.role) throw UserRoleRequiredException(actual = this.role, expected = setOf(expectedRole))
+}
+
+fun Auth.requireAnyRole(expectedRoles: Set<UserRole>) {
+    if (!expectedRoles.contains(this.role)) throw UserRoleRequiredException(
+        actual = this.role,
+        expected = expectedRoles
+    )
 }
