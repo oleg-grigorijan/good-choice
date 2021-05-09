@@ -51,7 +51,7 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                 authorize(GET, "/subjects/tags/*", permitAll)
 
                 // Reviews
-//                authorize(POST, "/reviews", permitAll)
+                authorize(GET, "/subjects/*/reviews", permitAll)
 
 
                 authorize("/**", authenticated)

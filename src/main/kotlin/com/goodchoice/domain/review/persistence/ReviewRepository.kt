@@ -29,7 +29,7 @@ interface ReviewRepository {
     fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
     fun getVotesByReviewIdOrNull(reviewId: UUID, issuerId: UUID): ReviewVotes?
     fun removeVote(reviewId: UUID, issuerId: UUID)
-    fun getAllBySubject(subjectId: UUID, mark: Mark?, issuerId: UUID, pageRequest: PageRequest): Page<Review>
+    fun getAllBySubject(subjectId: UUID, mark: Mark?, issuerId: UUID?, pageRequest: PageRequest): Page<Review>
 }
 
 class ReviewJooqRepository(
@@ -49,7 +49,6 @@ class ReviewJooqRepository(
         val reviewId = UUID.randomUUID()
         val reviewBodyId = UUID.randomUUID()
 
-        //todo: fix NullPointer on .execute() when author is administrator
         db.insertInto(REVIEW)
             .set(REVIEW.ID, reviewId)
             .set(REVIEW.TITLE, title)
@@ -108,17 +107,23 @@ class ReviewJooqRepository(
             .execute()
     }
 
-    override fun getAllBySubject(subjectId: UUID, mark: Mark?, issuerId: UUID, pageRequest: PageRequest): Page<Review> {
+    override fun getAllBySubject(
+        subjectId: UUID,
+        mark: Mark?,
+        issuerId: UUID?,
+        pageRequest: PageRequest
+    ): Page<Review> {
 
         val limit = pageRequest.limit
         val offset = pageRequest.offset
         val items = db.selectFrom(GET_REVIEW_FULL_VIEW_BY_ACTOR(issuerId))
-            .where(GET_REVIEW_FULL_VIEW_BY_ACTOR.IS_SHOWN.eq(true)
-                .and(GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID.eq(subjectId))
-                .let { condition ->
-                    if (mark != null) {
-                        condition.and(GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK.eq(mark.value))
-                    } else {
+            .where(
+                GET_REVIEW_FULL_VIEW_BY_ACTOR.IS_SHOWN.eq(true)
+                    .and(GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID.eq(subjectId))
+                    .let { condition ->
+                        if (mark != null) {
+                            condition.and(GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK.eq(mark.value))
+                        } else {
                         condition
                     }
                 }

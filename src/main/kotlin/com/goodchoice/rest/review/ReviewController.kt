@@ -42,7 +42,11 @@ class ReviewController(private val reviewService: ReviewService) {
 
     @GetMapping("/subjects/{id}/reviews")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Get reviews by mark")
+    @Operation(
+        summary = "Get reviews by subject",
+        description = "When user is not authenticated returns null in votes.own for all items."
+    )
+
     fun getAllBySubject(
         @PathVariable id: UUID,
         @RequestParam(required = false) mark: Int?,

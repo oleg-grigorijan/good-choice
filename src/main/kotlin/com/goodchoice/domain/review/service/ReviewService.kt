@@ -52,5 +52,5 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
 
     @Transactional(readOnly = true)
     override fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review> =
-        reviewRepo.getAllBySubject(subject.id, mark, authContext.currentAuth.id, pageRequest)
+        reviewRepo.getAllBySubject(subject.id, mark, authContext.currentAuthOrNull?.id, pageRequest)
 }
