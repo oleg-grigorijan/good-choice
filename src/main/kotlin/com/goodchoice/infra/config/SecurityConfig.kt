@@ -48,22 +48,20 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                 authorize(GET, "/docs/swagger-config", permitAll)
 
                 authorize(POST, "/reviewers/self", permitAll)
+
                 authorize(POST, "/employees/self", permitAll)
                 authorize(GET, "/employees/self/invitations", permitAll)
+
                 authorize(GET, "/brands", permitAll)
                 authorize(GET, "/brands/*", permitAll)
 
-                // Subjects
                 authorize(GET, "/subjects", permitAll)
                 authorize(GET, "/subjects/*", permitAll)
 
-                // Subject tags
                 authorize(GET, "/subjects/tags", permitAll)
                 authorize(GET, "/subjects/tags/*", permitAll)
 
-                // Reviews
                 authorize(GET, "/subjects/*/reviews", permitAll)
-
 
                 authorize("/**", authenticated)
             }
@@ -87,6 +85,7 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
             csrf {
                 disable()
             }
+            cors {}
         }
     }
 }
