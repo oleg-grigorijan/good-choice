@@ -24,7 +24,8 @@ interface ReviewRepository {
         advantages: List<String>,
         disadvantages: List<String>,
         mark: Mark,
-        body: ReviewBodyCreationRequest
+        body: ReviewBodyCreationRequest,
+        images: List<Reference>
     ): Reference
 
     fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
@@ -45,7 +46,8 @@ class ReviewJooqRepository(
         advantages: List<String>,
         disadvantages: List<String>,
         mark: Mark,
-        body: ReviewBodyCreationRequest
+        body: ReviewBodyCreationRequest,
+        images: List<Reference>
     ): Reference {
         val reviewId = UUID.randomUUID()
         val reviewBodyId = UUID.randomUUID()
@@ -96,7 +98,9 @@ class ReviewJooqRepository(
                 ReviewVotes(
                     it[GET_REVIEW_VOTES_BY_ACTOR.UPVOTES_COUNT],
                     it[GET_REVIEW_VOTES_BY_ACTOR.DOWNVOTES_COUNT],
-                    Vote(it[GET_REVIEW_VOTES_BY_ACTOR.OWN_VOTE].asVoteType())
+                    it[GET_REVIEW_VOTES_BY_ACTOR.OWN_VOTE]?.let {
+                        Vote(it.asVoteType())
+                    }
                 )
             }
     }
@@ -151,7 +155,8 @@ class ReviewJooqRepository(
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.OWN_VOTE]?.let {
                             Vote(it.asVoteType())
                         }
-                    )
+                    ),
+                    images = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.IMAGES])
                 )
             }
 

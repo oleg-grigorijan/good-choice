@@ -1,6 +1,6 @@
-create view review_to_image_view as
+create or replace view review_to_image_view as
 select review.id as review_id,
-       case count(*)
+       case count(review_image.review_id)
            when 0 then '[]'::jsonb
            else jsonb_agg(jsonb_build_object(
                    'id', review_image.image_id,
@@ -9,12 +9,12 @@ select review.id as review_id,
                ))
            end   as images
 from review
-         join review_image on review.id = review_image.review_id
-         join image on image.id = review_image.image_id
-group by review_id;
+         left join review_image on review.id = review_image.review_id
+         left join image on image.id = review_image.image_id
+group by review.id;
 
-
-create or replace view review_full_view as
+drop view if exists review_full_view;
+create view review_full_view as
 select review.id                                         as id,
        review.title                                      as title,
        review.is_shown                                   as is_shown,
@@ -34,11 +34,10 @@ from review
          join review_to_review_points_view on review.id = review_to_review_points_view.review_id
          join review_to_review_bodies_view on review.id = review_to_review_bodies_view.review_id
          join review_to_review_votes_count_view on review.id = review_to_review_votes_count_view.review_id
-         join review_to_image_view on review.id = review_to_image_view.review_id;
+         left join review_to_image_view on review.id = review_to_image_view.review_id;
 
 
-drop function get_review_full_view_by_actor(issuer_actor_id uuid);
-
+drop function if exists get_review_full_view_by_actor(issuer_actor_id uuid);
 create function get_review_full_view_by_actor(issuer_actor_id uuid)
     returns table
             (
@@ -78,7 +77,7 @@ begin
                votes.own_vote                     as own_vote,
                review_full_view.images            as images
         from review_full_view
-                 join get_review_votes_by_actor(issuer_actor_id) votes on votes.review_id = review_full_view.id;
+                 left join get_review_votes_by_actor(issuer_actor_id) votes on votes.review_id = review_full_view.id;
 end;
 $$ language plpgsql;
 
@@ -98,7 +97,7 @@ select subject.id as subject_id,
 from subject
          join subject_image on subject.id = subject_image.subject_id
          join image on image.id = subject_image.image_id
-group by subject_id;
+group by subject.id;
 
 
 create view subject_to_primary_image_view as
@@ -111,10 +110,11 @@ select subject.id as subject_id,
                )
            end    as image
 from subject
-         join image on image.id = subject.primary_image_id;
+         join image on image.id = subject.primary_image_id
+group by subject.id, image.id;
 
-
-create or replace view subject_full_view as
+drop view if exists subject_full_view;
+create view subject_full_view as
 select subject.id                          as id,
        subject.name                        as name,
        subject.description                 as description,
@@ -132,17 +132,24 @@ from subject
          join subject_to_primary_image_view on subject.id = subject_to_primary_image_view.subject_id
          join subject_to_image_view on subject.id = subject_to_image_view.subject_id;
 
+drop view if exists subject_preview_view;
 create view subject_preview_view as
-select subject.id                  as id,
-       subject.name                as name,
-       subject.is_shown            as is_shown,
-       subject_to_marks_view.marks as marks,
-       subject_to_tags_view.tags   as tags,
-       brand.id                    as brand_id,
-       brand.name                  as brand_name,
-       image.location              as image_location
+select subject.id                          as id,
+       subject.name                        as name,
+       subject.is_shown                    as is_shown,
+       subject_to_marks_view.marks         as marks,
+       subject_to_tags_view.tags           as tags,
+       brand.id                            as brand_id,
+       brand.name                          as brand_name,
+       subject_to_primary_image_view.image as primary_image
 from subject
          join brand on brand.id = subject.brand_id
          join subject_to_marks_view on subject.id = subject_to_marks_view.subject_id
          join subject_to_tags_view on subject.id = subject_to_tags_view.subject_id
-         left join image on subject.primary_image_id = image.id;
+         join subject_to_primary_image_view on subject.id = subject_to_primary_image_view.subject_id;
+
+alter table subject_image
+    add unique (subject_id, ordering);
+
+alter table review_image
+    add unique (review_id, ordering);

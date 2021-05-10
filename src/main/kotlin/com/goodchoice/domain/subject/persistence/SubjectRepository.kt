@@ -6,6 +6,8 @@ import com.goodchoice.domain.common.jooq.Tables.*
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
+import com.goodchoice.domain.image.model.OrderedImageModificationRequest
+import com.goodchoice.domain.image.model.OrderedImageRemoveRequest
 import com.goodchoice.domain.subject.model.Subject
 import com.goodchoice.domain.subject.model.SubjectPreview
 import com.goodchoice.domain.subject.model.SubjectSummary
@@ -16,14 +18,25 @@ import java.time.Clock
 import java.util.*
 
 interface SubjectRepository {
-    fun create(name: String, description: String, tags: List<Reference>, brand: Reference): Reference
+    fun create(
+        name: String,
+        description: String,
+        tags: List<Reference>,
+        brand: Reference,
+        images: List<Reference>,
+        primaryImage: Reference?
+    ): Reference
+
     fun update(
         id: UUID,
         name: String,
         description: String,
         brand: Reference,
         addedTags: List<Reference>,
-        removedTags: List<Reference>
+        removedTags: List<Reference>,
+        addedImages: List<OrderedImageModificationRequest>,
+        removedImages: List<OrderedImageRemoveRequest>,
+        primaryImage: Reference?
     )
 
     fun getAllPreviewsByQuery(
@@ -40,7 +53,14 @@ class SubjectJooqRepository(
     private val clock: Clock,
     private val objectMapper: ObjectMapper
 ) : SubjectRepository {
-    override fun create(name: String, description: String, tags: List<Reference>, brand: Reference): Reference {
+    override fun create(
+        name: String,
+        description: String,
+        tags: List<Reference>,
+        brand: Reference,
+        images: List<Reference>,
+        primaryImage: Reference?
+    ): Reference {
         val id = UUID.randomUUID()
 
         db.insertInto(SUBJECT)
@@ -50,6 +70,11 @@ class SubjectJooqRepository(
             .set(SUBJECT.BRAND_ID, brand.id)
             .set(SUBJECT.IS_SHOWN, true)
             .set(SUBJECT.CREATED_TIMESTAMP, clock.now())
+            .set(SUBJECT.PRIMARY_IMAGE_ID, primaryImage?.id)
+            .execute()
+
+        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID)
+            .apply { images.forEach { values(id, it.id) } }
             .execute()
 
         db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
@@ -65,16 +90,20 @@ class SubjectJooqRepository(
         description: String,
         brand: Reference,
         addedTags: List<Reference>,
-        removedTags: List<Reference>
+        removedTags: List<Reference>,
+        addedImages: List<OrderedImageModificationRequest>,
+        removedImages: List<OrderedImageRemoveRequest>,
+        primaryImage: Reference?
     ) {
-
 
         db.update(SUBJECT)
             .set(SUBJECT.NAME, name)
             .set(SUBJECT.DESCRIPTION, description)
             .set(SUBJECT.BRAND_ID, brand.id)
+            .set(SUBJECT.PRIMARY_IMAGE_ID, primaryImage?.id)
             .where(SUBJECT.ID.eq(id))
             .execute()
+
 
         db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
             .apply { addedTags.forEach { values(id, it.id) } }
@@ -84,6 +113,22 @@ class SubjectJooqRepository(
             .where(
                 SUBJECT_TO_TAG.SUBJECT_ID.eq(id)
                     .and(SUBJECT_TO_TAG.TAG_ID.`in`(removedTags.map { it.id }))
+            )
+            .execute()
+
+
+        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID, SUBJECT_IMAGE.ORDERING)
+            .apply { addedImages.forEach { values(id, it.image.id, it.ordering) } }
+            .execute()
+
+        db.delete(SUBJECT_IMAGE)
+            .where(
+                SUBJECT_IMAGE.SUBJECT_ID.eq(id)
+                    .and(SUBJECT_IMAGE.ORDERING.`in`(removedImages.map { it.ordering }))
+//                SUBJECT_IMAGE.SUBJECT_ID.eq(id).and(
+//                    removedImages.fold(DSL.falseCondition() as Condition){ condition, it ->
+//                        condition.or(SUBJECT_IMAGE.IMAGE_ID.eq(it.image.id).and((SUBJECT_IMAGE.ORDERING.eq(it.ordering))))
+//                    })
             )
             .execute()
 
@@ -125,7 +170,8 @@ class SubjectJooqRepository(
                     name = it[SUBJECT_PREVIEW_VIEW.NAME],
                     brand = BrandPreview(it[SUBJECT_PREVIEW_VIEW.BRAND_ID], it[SUBJECT_PREVIEW_VIEW.BRAND_NAME]),
                     summary = SubjectSummary(objectMapper.read(it[SUBJECT_PREVIEW_VIEW.MARKS])),
-                    subjectTags = objectMapper.read(it[SUBJECT_PREVIEW_VIEW.TAGS])
+                    subjectTags = objectMapper.read(it[SUBJECT_PREVIEW_VIEW.TAGS]),
+                    primaryImage = objectMapper.read(it[SUBJECT_PREVIEW_VIEW.PRIMARY_IMAGE])
                 )
             }
         var hasNext = false
@@ -152,7 +198,9 @@ class SubjectJooqRepository(
                     brand = BrandPreview(it[SUBJECT_FULL_VIEW.BRAND_ID], it[SUBJECT_FULL_VIEW.BRAND_NAME]),
                     summary = SubjectSummary(objectMapper.read(it[SUBJECT_FULL_VIEW.MARKS])),
                     description = it[SUBJECT.DESCRIPTION],
-                    subjectTags = objectMapper.read(it[SUBJECT_FULL_VIEW.TAGS])
+                    subjectTags = objectMapper.read(it[SUBJECT_FULL_VIEW.TAGS]),
+                    images = objectMapper.read(it[SUBJECT_FULL_VIEW.IMAGES]),
+                    primaryImage = objectMapper.read(it[SUBJECT_FULL_VIEW.PRIMARY_IMAGE])
                 )
             }
     }

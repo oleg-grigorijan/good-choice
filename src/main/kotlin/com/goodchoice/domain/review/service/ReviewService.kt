@@ -8,7 +8,7 @@ import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.review.ReviewNotFoundException
 import com.goodchoice.domain.review.model.Review
-import com.goodchoice.domain.review.model.ReviewModificationRequest
+import com.goodchoice.domain.review.model.ReviewCreationRequest
 import com.goodchoice.domain.review.model.ReviewVotes
 import com.goodchoice.domain.review.model.Vote
 import com.goodchoice.domain.review.persistence.ReviewRepository
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 interface ReviewService {
-    fun create(request: ReviewModificationRequest): Reference
+    fun create(request: ReviewCreationRequest): Reference
     fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotes
     fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotes
     fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review>
@@ -27,7 +27,7 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
     ReviewService {
 
     @Transactional
-    override fun create(request: ReviewModificationRequest): Reference {
+    override fun create(request: ReviewCreationRequest): Reference {
         authService.currentAuth.requireRole(REVIEWER)
         return reviewRepo.create(
             title = request.title,
@@ -36,7 +36,8 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
             advantages = request.advantages,
             disadvantages = request.disadvantages,
             mark = request.mark,
-            body = request.body
+            body = request.body,
+            images = request.addedImages
         )
     }
 

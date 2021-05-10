@@ -4,7 +4,7 @@ import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.review.model.Review
-import com.goodchoice.domain.review.model.ReviewModificationRequest
+import com.goodchoice.domain.review.model.ReviewCreationRequest
 import com.goodchoice.domain.review.model.ReviewVotes
 import com.goodchoice.domain.review.model.Vote
 import com.goodchoice.domain.review.service.ReviewService
@@ -38,7 +38,7 @@ class ReviewController(private val reviewService: ReviewService) {
     @ResponseStatus(HttpStatus.CREATED)
     @RequireSecurity
     @Operation(summary = "Create a new review by authenticated user")
-    fun create(@RequestBody request: ReviewModificationRequest): Reference = reviewService.create(request)
+    fun create(@RequestBody request: ReviewCreationRequest): Reference = reviewService.create(request)
 
     @GetMapping("/subjects/{id}/reviews")
     @ResponseStatus(HttpStatus.OK)

@@ -31,7 +31,9 @@ class SubjectServiceImpl(
             name = request.name,
             description = request.description,
             tags = request.addedTags,
-            brand = request.brand
+            brand = request.brand,
+            images = request.addedImages,
+            primaryImage = request.primaryImage
         )
     }
 
@@ -48,7 +50,10 @@ class SubjectServiceImpl(
             description = request.description,
             brand = request.brand,
             addedTags = request.addedTags,
-            removedTags = request.removedTags
+            removedTags = request.removedTags,
+            addedImages = request.addedImages,
+            removedImages = request.removedImages,
+            primaryImage = request.primaryImage
         )
     }
 
