@@ -34,7 +34,7 @@ from review
          join review_to_review_points_view on review.id = review_to_review_points_view.review_id
          join review_to_review_bodies_view on review.id = review_to_review_bodies_view.review_id
          join review_to_review_votes_count_view on review.id = review_to_review_votes_count_view.review_id
-         left join review_to_image_view on review.id = review_to_image_view.review_id;
+         join review_to_image_view on review.id = review_to_image_view.review_id;
 
 
 drop function if exists get_review_full_view_by_actor(issuer_actor_id uuid);
@@ -84,9 +84,23 @@ $$ language plpgsql;
 alter table subject_image
     add column ordering integer not null default 0;
 
+create view subject_to_primary_image_view as
+select subject.id as subject_id,
+       case count(subject.primary_image_id)
+           when 0 then null
+           else jsonb_build_object(
+                   'id', image.id,
+                   'location', image.location
+               )
+           end    as image
+from subject
+         left join image on image.id = subject.primary_image_id
+group by subject.id, image.id;
+
+
 create view subject_to_image_view as
 select subject.id as subject_id,
-       case count(*)
+       case count(subject_image.subject_id)
            when 0 then '[]'::jsonb
            else jsonb_agg(jsonb_build_object(
                    'id', subject_image.image_id,
@@ -95,23 +109,9 @@ select subject.id as subject_id,
                ))
            end    as images
 from subject
-         join subject_image on subject.id = subject_image.subject_id
-         join image on image.id = subject_image.image_id
+         left join subject_image on subject.id = subject_image.subject_id
+         left join image on image.id = subject_image.image_id
 group by subject.id;
-
-
-create view subject_to_primary_image_view as
-select subject.id as subject_id,
-       case count(*)
-           when 0 then '[]'::jsonb
-           else jsonb_build_object(
-                   'id', image.id,
-                   'location', image.location
-               )
-           end    as image
-from subject
-         join image on image.id = subject.primary_image_id
-group by subject.id, image.id;
 
 drop view if exists subject_full_view;
 create view subject_full_view as
@@ -153,3 +153,31 @@ alter table subject_image
 
 alter table review_image
     add unique (review_id, ordering);
+
+create or replace view review_to_review_points_view as
+select review.id as review_id,
+       case count(review_point.review_id) filter ( where review_point.type = 'ADVANTAGE' )
+           when 0 then '[]'::jsonb
+           else jsonb_agg(review_point.content) filter ( where review_point.type = 'ADVANTAGE' )
+           end   as advantages,
+       case count(review_point.review_id) filter ( where review_point.type = 'DISADVANTAGE' )
+           when 0 then '[]'::jsonb
+           else jsonb_agg(review_point.content) filter ( where review_point.type = 'DISADVANTAGE' )
+           end   as disadvantages
+from review
+         left join review_point on review.id = review_point.review_id
+group by review.id;
+
+create or replace view review_to_review_bodies_view as
+select review.id as review_id,
+       case count(review_body.review_id)
+           when 0 then '[]'::jsonb
+           else jsonb_agg(jsonb_build_object(
+                   'id', review_body.id,
+                   'content', review_body.content,
+                   'createdTimestamp', review_body.created_timestamp
+               ))
+           end   as bodies
+from review
+         left join review_body on review.id = review_body.review_id
+group by review.id;

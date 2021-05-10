@@ -37,7 +37,10 @@ class ReviewController(private val reviewService: ReviewService) {
     @PostMapping("/reviews")
     @ResponseStatus(HttpStatus.CREATED)
     @RequireSecurity
-    @Operation(summary = "Create a new review by authenticated user")
+    @Operation(
+        summary = "Create a new review by authenticated user",
+        description = "Throws NullPointerException when a review from authenticated user to specified subject is already shown."
+    )
     fun create(@RequestBody request: ReviewCreationRequest): Reference = reviewService.create(request)
 
     @GetMapping("/subjects/{id}/reviews")

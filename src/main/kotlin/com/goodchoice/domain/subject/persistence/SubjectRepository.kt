@@ -96,6 +96,18 @@ class SubjectJooqRepository(
         primaryImage: Reference?
     ) {
 
+        //need to insert/delete images first in order to be able to manage primaryImage setting correctly
+        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID, SUBJECT_IMAGE.ORDERING)
+            .apply { addedImages.forEach { values(id, it.image.id, it.ordering) } }
+            .execute()
+
+        db.delete(SUBJECT_IMAGE)
+            .where(
+                SUBJECT_IMAGE.SUBJECT_ID.eq(id)
+                    .and(SUBJECT_IMAGE.ORDERING.`in`(removedImages.map { it.ordering }))
+            )
+            .execute()
+
         db.update(SUBJECT)
             .set(SUBJECT.NAME, name)
             .set(SUBJECT.DESCRIPTION, description)
@@ -115,23 +127,6 @@ class SubjectJooqRepository(
                     .and(SUBJECT_TO_TAG.TAG_ID.`in`(removedTags.map { it.id }))
             )
             .execute()
-
-
-        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID, SUBJECT_IMAGE.ORDERING)
-            .apply { addedImages.forEach { values(id, it.image.id, it.ordering) } }
-            .execute()
-
-        db.delete(SUBJECT_IMAGE)
-            .where(
-                SUBJECT_IMAGE.SUBJECT_ID.eq(id)
-                    .and(SUBJECT_IMAGE.ORDERING.`in`(removedImages.map { it.ordering }))
-//                SUBJECT_IMAGE.SUBJECT_ID.eq(id).and(
-//                    removedImages.fold(DSL.falseCondition() as Condition){ condition, it ->
-//                        condition.or(SUBJECT_IMAGE.IMAGE_ID.eq(it.image.id).and((SUBJECT_IMAGE.ORDERING.eq(it.ordering))))
-//                    })
-            )
-            .execute()
-
     }
 
     override fun getAllPreviewsByQuery(
@@ -171,7 +166,7 @@ class SubjectJooqRepository(
                     brand = BrandPreview(it[SUBJECT_PREVIEW_VIEW.BRAND_ID], it[SUBJECT_PREVIEW_VIEW.BRAND_NAME]),
                     summary = SubjectSummary(objectMapper.read(it[SUBJECT_PREVIEW_VIEW.MARKS])),
                     subjectTags = objectMapper.read(it[SUBJECT_PREVIEW_VIEW.TAGS]),
-                    primaryImage = objectMapper.read(it[SUBJECT_PREVIEW_VIEW.PRIMARY_IMAGE])
+                    primaryImage = it[SUBJECT_PREVIEW_VIEW.PRIMARY_IMAGE]?.let { objectMapper.read(it) }
                 )
             }
         var hasNext = false
@@ -200,7 +195,7 @@ class SubjectJooqRepository(
                     description = it[SUBJECT.DESCRIPTION],
                     subjectTags = objectMapper.read(it[SUBJECT_FULL_VIEW.TAGS]),
                     images = objectMapper.read(it[SUBJECT_FULL_VIEW.IMAGES]),
-                    primaryImage = objectMapper.read(it[SUBJECT_FULL_VIEW.PRIMARY_IMAGE])
+                    primaryImage = it[SUBJECT_FULL_VIEW.PRIMARY_IMAGE]?.let { objectMapper.read(it) }
                 )
             }
     }
