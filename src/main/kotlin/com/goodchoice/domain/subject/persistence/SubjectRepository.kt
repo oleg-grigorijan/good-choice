@@ -6,7 +6,7 @@ import com.goodchoice.domain.common.jooq.Tables.*
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
-import com.goodchoice.domain.image.model.OrderedImageModificationRequest
+import com.goodchoice.domain.image.model.OrderedImageCreationRequest
 import com.goodchoice.domain.image.model.OrderedImageRemoveRequest
 import com.goodchoice.domain.subject.model.Subject
 import com.goodchoice.domain.subject.model.SubjectPreview
@@ -34,7 +34,7 @@ interface SubjectRepository {
         brand: Reference,
         addedTags: List<Reference>,
         removedTags: List<Reference>,
-        addedImages: List<OrderedImageModificationRequest>,
+        addedImages: List<OrderedImageCreationRequest>,
         removedImages: List<OrderedImageRemoveRequest>,
         primaryImage: Reference?
     )
@@ -91,7 +91,7 @@ class SubjectJooqRepository(
         brand: Reference,
         addedTags: List<Reference>,
         removedTags: List<Reference>,
-        addedImages: List<OrderedImageModificationRequest>,
+        addedImages: List<OrderedImageCreationRequest>,
         removedImages: List<OrderedImageRemoveRequest>,
         primaryImage: Reference?
     ) {
