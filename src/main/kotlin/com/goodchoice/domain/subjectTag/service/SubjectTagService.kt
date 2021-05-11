@@ -1,7 +1,7 @@
 package com.goodchoice.domain.subjectTag.service
 
 import com.goodchoice.domain.auth.model.UserRole
-import com.goodchoice.domain.auth.model.requireRole
+import com.goodchoice.domain.auth.model.requireAnyRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
@@ -23,7 +23,7 @@ class SubjectTagServiceImpl(private val subjectTagRepo: SubjectTagRepository, pr
     SubjectTagService {
 
     override fun create(request: SubjectTagModificationRequest): Reference {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        authService.currentAuth.requireAnyRole(UserRole.ADMINISTRATOR)
         return subjectTagRepo.create(name = request.name)
     }
 
@@ -31,7 +31,7 @@ class SubjectTagServiceImpl(private val subjectTagRepo: SubjectTagRepository, pr
         subjectTagRepo.getByIdOrNull(id) ?: throw SubjectTagNotFoundException()
 
     override fun update(id: UUID, request: SubjectTagModificationRequest) {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        authService.currentAuth.requireAnyRole(UserRole.ADMINISTRATOR)
         subjectTagRepo.update(id = id, name = request.name)
     }
 

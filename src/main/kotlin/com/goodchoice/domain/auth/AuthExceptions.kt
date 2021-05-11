@@ -20,5 +20,5 @@ abstract class AuthorizationException(
     cause: Throwable? = null
 ) : ApplicationException(message, cause)
 
-class UserRoleRequiredException(val actual: UserRole?, val expected: Set<UserRole>) : AuthorizationException()
+class UserRoleRequiredException(val actual: UserRole?, vararg val expected: UserRole) : AuthorizationException()
 class ConfirmedEmailRequiredException : AuthorizationException()

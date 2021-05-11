@@ -9,6 +9,6 @@ data class ReviewCreationRequest(
     val advantages: List<String>,
     val disadvantages: List<String>,
     val mark: Mark,
-    val addedImages: List<Reference>,
+    val images: List<Reference>,
     val body: ReviewBodyCreationRequest
 )

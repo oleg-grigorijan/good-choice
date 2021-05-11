@@ -6,14 +6,13 @@ import com.goodchoice.domain.common.jooq.Tables.*
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
-import com.goodchoice.domain.image.model.OrderedImageCreationRequest
-import com.goodchoice.domain.image.model.OrderedImageRemoveRequest
 import com.goodchoice.domain.subject.model.Subject
 import com.goodchoice.domain.subject.model.SubjectPreview
 import com.goodchoice.domain.subject.model.SubjectSummary
 import com.goodchoice.infra.common.now
 import com.goodchoice.infra.persistence.read
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import java.time.Clock
 import java.util.*
 
@@ -34,8 +33,7 @@ interface SubjectRepository {
         brand: Reference,
         addedTags: List<Reference>,
         removedTags: List<Reference>,
-        addedImages: List<OrderedImageCreationRequest>,
-        removedImages: List<OrderedImageRemoveRequest>,
+        images: List<Reference>,
         primaryImage: Reference?
     )
 
@@ -91,21 +89,17 @@ class SubjectJooqRepository(
         brand: Reference,
         addedTags: List<Reference>,
         removedTags: List<Reference>,
-        addedImages: List<OrderedImageCreationRequest>,
-        removedImages: List<OrderedImageRemoveRequest>,
+        images: List<Reference>,
         primaryImage: Reference?
     ) {
 
-        //need to insert/delete images first in order to be able to manage primaryImage setting correctly
+        //need to insert images first in order to be able to manage primaryImage setting correctly
+        var ordering = 0
         db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID, SUBJECT_IMAGE.ORDERING)
-            .apply { addedImages.forEach { values(id, it.image.id, it.ordering) } }
-            .execute()
-
-        db.delete(SUBJECT_IMAGE)
-            .where(
-                SUBJECT_IMAGE.SUBJECT_ID.eq(id)
-                    .and(SUBJECT_IMAGE.ORDERING.`in`(removedImages.map { it.ordering }))
-            )
+            .apply { images.forEach { values(id, it.id, ordering++) } }
+            .onConflict(SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID)
+            .doUpdate()
+            .set(SUBJECT_IMAGE.ORDERING, DSL.field("EXCLUDED.ordering", SUBJECT_IMAGE.ORDERING.dataType))
             .execute()
 
         db.update(SUBJECT)
@@ -116,6 +110,9 @@ class SubjectJooqRepository(
             .where(SUBJECT.ID.eq(id))
             .execute()
 
+        db.delete(SUBJECT_IMAGE)
+            .where(SUBJECT_IMAGE.SUBJECT_ID.eq(id).and(SUBJECT_IMAGE.IMAGE_ID.notIn(images.map { it.id })))
+            .execute()
 
         db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
             .apply { addedTags.forEach { values(id, it.id) } }

@@ -1,7 +1,7 @@
 package com.goodchoice.domain.review.service
 
 import com.goodchoice.domain.auth.model.UserRole.REVIEWER
-import com.goodchoice.domain.auth.model.requireRole
+import com.goodchoice.domain.auth.model.requireAnyRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
@@ -28,7 +28,7 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
 
     @Transactional
     override fun create(request: ReviewCreationRequest): Reference {
-        authService.currentAuth.requireRole(REVIEWER)
+        authService.currentAuth.requireAnyRole(REVIEWER)
         return reviewRepo.create(
             title = request.title,
             author = Reference(authService.currentAuth.id),
@@ -37,7 +37,7 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
             disadvantages = request.disadvantages,
             mark = request.mark,
             body = request.body,
-            images = request.addedImages
+            images = request.images
         )
     }
 

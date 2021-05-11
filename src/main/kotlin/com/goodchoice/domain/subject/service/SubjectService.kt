@@ -1,7 +1,7 @@
 package com.goodchoice.domain.subject.service
 
 import com.goodchoice.domain.auth.model.UserRole
-import com.goodchoice.domain.auth.model.requireRole
+import com.goodchoice.domain.auth.model.requireAnyRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
@@ -26,13 +26,13 @@ class SubjectServiceImpl(
 
     @Transactional
     override fun create(request: SubjectCreationRequest): Reference {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        authService.currentAuth.requireAnyRole(UserRole.ADMINISTRATOR)
         return subjectRepo.create(
             name = request.name,
             description = request.description,
             tags = request.addedTags,
             brand = request.brand,
-            images = request.addedImages,
+            images = request.images,
             primaryImage = request.primaryImage
         )
     }
@@ -43,7 +43,7 @@ class SubjectServiceImpl(
 
     @Transactional
     override fun update(id: UUID, request: SubjectModificationRequest) {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        authService.currentAuth.requireAnyRole(UserRole.ADMINISTRATOR)
         subjectRepo.update(
             id = id,
             name = request.name,
@@ -51,8 +51,7 @@ class SubjectServiceImpl(
             brand = request.brand,
             addedTags = request.addedTags,
             removedTags = request.removedTags,
-            addedImages = request.addedImages,
-            removedImages = request.removedImages,
+            images = request.images,
             primaryImage = request.primaryImage
         )
     }

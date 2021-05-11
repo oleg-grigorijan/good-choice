@@ -52,6 +52,8 @@ class ReviewJooqRepository(
         val reviewId = UUID.randomUUID()
         val reviewBodyId = UUID.randomUUID()
 
+
+        // todo: wrap NullPointerException thrown when a review from author to subject is already shown into business exception
         db.insertInto(REVIEW)
             .set(REVIEW.ID, reviewId)
             .set(REVIEW.TITLE, title)

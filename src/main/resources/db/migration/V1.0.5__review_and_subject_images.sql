@@ -4,9 +4,8 @@ select review.id as review_id,
            when 0 then '[]'::jsonb
            else jsonb_agg(jsonb_build_object(
                    'id', review_image.image_id,
-                   'location', image.location,
-                   'ordering', review_image.ordering
-               ))
+                   'location', image.location
+               ) order by review_image.ordering)
            end   as images
 from review
          left join review_image on review.id = review_image.review_id
@@ -104,9 +103,8 @@ select subject.id as subject_id,
            when 0 then '[]'::jsonb
            else jsonb_agg(jsonb_build_object(
                    'id', subject_image.image_id,
-                   'location', image.location,
-                   'ordering', subject_image.ordering
-               ))
+                   'location', image.location
+               ) order by subject_image.ordering)
            end    as images
 from subject
          left join subject_image on subject.id = subject_image.subject_id

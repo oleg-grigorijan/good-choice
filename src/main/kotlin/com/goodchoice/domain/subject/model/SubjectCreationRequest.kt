@@ -9,7 +9,7 @@ data class SubjectCreationRequest(
     val description: String,
     val brand: Reference,
     val addedTags: List<Reference>,
-    val addedImages: List<Reference>,
+    val images: List<Reference>,
     val primaryImage: Reference?
 ) {
     init {
