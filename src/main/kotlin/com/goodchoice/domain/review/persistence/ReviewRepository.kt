@@ -29,9 +29,10 @@ interface ReviewRepository {
     ): Reference
 
     fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
-    fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotes?
+    fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotesWithOwn?
     fun removeVote(reviewId: UUID, reviewerId: UUID)
     fun getAllBySubject(subjectId: UUID, mark: Mark?, reviewerId: UUID?, pageRequest: PageRequest): Page<Review>
+    fun getBySubjectAndAuthorOrNull(subjectId: UUID, authorId: UUID?): OwnReview?
 }
 
 class ReviewJooqRepository(
@@ -94,10 +95,10 @@ class ReviewJooqRepository(
             .execute()
     }
 
-    override fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotes? {
+    override fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotesWithOwn? {
         return db.selectFrom(GET_REVIEW_VOTES_BY_ACTOR(reviewerId))
             .where(GET_REVIEW_VOTES_BY_ACTOR.REVIEW_ID.eq(reviewId)).fetchOne()?.map {
-                ReviewVotes(
+                ReviewVotesWithOwn(
                     it[GET_REVIEW_VOTES_BY_ACTOR.UPVOTES_COUNT],
                     it[GET_REVIEW_VOTES_BY_ACTOR.DOWNVOTES_COUNT],
                     it[GET_REVIEW_VOTES_BY_ACTOR.OWN_VOTE]?.let {
@@ -151,7 +152,7 @@ class ReviewJooqRepository(
                     advantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ADVANTAGES]),
                     disadvantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
                     bodies = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.BODIES]),
-                    votes = ReviewVotes(
+                    votes = ReviewVotesWithOwn(
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.UPVOTES_COUNT],
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DOWNVOTES_COUNT],
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.OWN_VOTE]?.let {
@@ -168,5 +169,32 @@ class ReviewJooqRepository(
             hasNext = true
         }
         return Page(offset, items, hasNext)
+    }
+
+    override fun getBySubjectAndAuthorOrNull(subjectId: UUID, authorId: UUID?): OwnReview? {
+        return db.selectFrom(REVIEW_FULL_VIEW)
+            .where(REVIEW_FULL_VIEW.SUBJECT_ID.eq(subjectId).and(REVIEW_FULL_VIEW.AUTHOR_ID.eq(authorId)))
+            .fetchOne()
+            ?.map {
+                OwnReview(
+                    id = it[REVIEW_FULL_VIEW.ID],
+                    title = it[REVIEW_FULL_VIEW.TITLE],
+                    subject = Reference(it[REVIEW_FULL_VIEW.SUBJECT_ID]),
+                    author = UserPreview(
+                        it[REVIEW_FULL_VIEW.AUTHOR_ID],
+                        it[REVIEW_FULL_VIEW.AUTHOR_FIRST_NAME],
+                        it[REVIEW_FULL_VIEW.AUTHOR_LAST_NAME]
+                    ),
+                    mark = Mark(it[REVIEW_FULL_VIEW.MARK]),
+                    advantages = objectMapper.read(it[REVIEW_FULL_VIEW.ADVANTAGES]),
+                    disadvantages = objectMapper.read(it[REVIEW_FULL_VIEW.DISADVANTAGES]),
+                    bodies = objectMapper.read(it[REVIEW_FULL_VIEW.BODIES]),
+                    votes = ReviewVotes(
+                        it[REVIEW_FULL_VIEW.UPVOTES_COUNT],
+                        it[REVIEW_FULL_VIEW.DOWNVOTES_COUNT]
+                    ),
+                    images = objectMapper.read(it[REVIEW_FULL_VIEW.IMAGES])
+                )
+            }
     }
 }

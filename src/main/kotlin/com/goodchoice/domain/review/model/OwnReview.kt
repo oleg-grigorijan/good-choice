@@ -6,7 +6,7 @@ import com.goodchoice.domain.subject.model.Mark
 import com.goodchoice.domain.user.model.UserPreview
 import java.util.*
 
-data class Review(
+data class OwnReview(
     val id: UUID,
     val title: String,
     val subject: Reference,
@@ -15,6 +15,6 @@ data class Review(
     val advantages: List<String>,
     val disadvantages: List<String>,
     val bodies: List<ReviewBody>,
-    val votes: ReviewVotesWithOwn,
+    val votes: ReviewVotes,
     val images: List<ImageDescriptor>
 )
