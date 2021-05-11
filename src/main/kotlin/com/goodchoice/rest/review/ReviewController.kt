@@ -3,10 +3,7 @@ package com.goodchoice.rest.review
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
-import com.goodchoice.domain.review.model.Review
-import com.goodchoice.domain.review.model.ReviewCreationRequest
-import com.goodchoice.domain.review.model.ReviewVotes
-import com.goodchoice.domain.review.model.Vote
+import com.goodchoice.domain.review.model.*
 import com.goodchoice.domain.review.service.ReviewService
 import com.goodchoice.domain.subject.model.Mark
 import com.goodchoice.infra.swagger.RequireSecurity
@@ -46,16 +43,15 @@ class ReviewController(private val reviewService: ReviewService) {
         summary = "Get reviews by subject",
         description = "When user is not authenticated returns null in votes.own for all items."
     )
-
     fun getAllBySubject(
         @PathVariable id: UUID,
         @RequestParam(required = false) mark: Int?,
+        @RequestParam(required = false) filterNotOwn: Boolean?,
         @RequestParam limit: Int,
         @RequestParam offset: Int
     ): Page<Review> =
         reviewService.getAllBySubject(
-            subject = Reference(id),
-            mark = mark?.let { Mark(mark) },
+            reviewBySubjectQuery = ReviewBySubjectQuery(id, filterNotOwn ?: false, mark?.let { Mark(mark) }),
             pageRequest = PageRequest(offset = offset, limit = limit)
         )
 

@@ -7,12 +7,8 @@ import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.review.ReviewNotFoundException
-import com.goodchoice.domain.review.model.Review
-import com.goodchoice.domain.review.model.ReviewCreationRequest
-import com.goodchoice.domain.review.model.ReviewVotes
-import com.goodchoice.domain.review.model.Vote
+import com.goodchoice.domain.review.model.*
 import com.goodchoice.domain.review.persistence.ReviewRepository
-import com.goodchoice.domain.subject.model.Mark
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
@@ -20,7 +16,7 @@ interface ReviewService {
     fun create(request: ReviewCreationRequest): Reference
     fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotes
     fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotes
-    fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review>
+    fun getAllBySubject(reviewBySubjectQuery: ReviewBySubjectQuery, pageRequest: PageRequest): Page<Review>
     fun getOwnBySubject(subject: Reference): Review
 }
 
@@ -57,8 +53,14 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
     }
 
     @Transactional(readOnly = true)
-    override fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review> =
-        reviewRepo.getAllBySubject(subject.id, mark, authService.currentAuthOrNull?.id, pageRequest)
+    override fun getAllBySubject(reviewBySubjectQuery: ReviewBySubjectQuery, pageRequest: PageRequest): Page<Review> =
+        reviewRepo.getAllBySubject(
+            reviewBySubjectQuery.subjectId,
+            reviewBySubjectQuery.mark,
+            authService.currentAuthOrNull?.id,
+            reviewBySubjectQuery.filterNotOwn,
+            pageRequest
+        )
 
     @Transactional(readOnly = true)
     override fun getOwnBySubject(subject: Reference): Review {
