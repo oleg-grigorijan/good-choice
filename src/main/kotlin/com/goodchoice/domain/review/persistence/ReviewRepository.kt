@@ -31,7 +31,13 @@ interface ReviewRepository {
     fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
     fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotes?
     fun removeVote(reviewId: UUID, reviewerId: UUID)
-    fun getAllBySubject(subjectId: UUID, mark: Mark?, reviewerId: UUID?, pageRequest: PageRequest): Page<Review>
+    fun getAllBySubject(
+        subjectId: UUID,
+        mark: Mark?,
+        reviewerId: UUID?,
+        filterNotOwn: Boolean,
+        pageRequest: PageRequest
+    ): Page<Review>
 }
 
 class ReviewJooqRepository(
@@ -117,6 +123,7 @@ class ReviewJooqRepository(
         subjectId: UUID,
         mark: Mark?,
         reviewerId: UUID?,
+        filterNotOwn: Boolean,
         pageRequest: PageRequest
     ): Page<Review> {
 
@@ -129,6 +136,13 @@ class ReviewJooqRepository(
                     .let { condition ->
                         if (mark != null) {
                             condition.and(GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK.eq(mark.value))
+                        } else {
+                            condition
+                        }
+                    }
+                    .let { condition ->
+                        if (filterNotOwn) {
+                            condition.and(GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID.ne(reviewerId))
                         } else {
                             condition
                         }
