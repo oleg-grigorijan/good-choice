@@ -7,7 +7,10 @@ import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
 import com.goodchoice.domain.review.ReviewNotFoundException
-import com.goodchoice.domain.review.model.*
+import com.goodchoice.domain.review.model.Review
+import com.goodchoice.domain.review.model.ReviewCreationRequest
+import com.goodchoice.domain.review.model.ReviewVotes
+import com.goodchoice.domain.review.model.Vote
 import com.goodchoice.domain.review.persistence.ReviewRepository
 import com.goodchoice.domain.subject.model.Mark
 import org.springframework.transaction.annotation.Transactional
@@ -15,10 +18,10 @@ import java.util.*
 
 interface ReviewService {
     fun create(request: ReviewCreationRequest): Reference
-    fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotesWithOwn
-    fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotesWithOwn
+    fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotes
+    fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotes
     fun getAllBySubject(subject: Reference, mark: Mark?, pageRequest: PageRequest): Page<Review>
-    fun getBySubjectAndAuthenticatedAuthor(subject: Reference): OwnReview
+    fun getOwnBySubject(subject: Reference): Review
 }
 
 class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val authService: AuthService) :
@@ -40,14 +43,14 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
     }
 
     @Transactional
-    override fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotesWithOwn {
+    override fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotes {
         reviewRepo.vote(reviewId, authService.currentAuth.id, request.type)
         return reviewRepo.getVotesByReviewIdOrNull(reviewId, authService.currentAuth.id)
             ?: throw ReviewNotFoundException()
     }
 
     @Transactional
-    override fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotesWithOwn {
+    override fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotes {
         reviewRepo.removeVote(reviewId, authService.currentAuth.id)
         return reviewRepo.getVotesByReviewIdOrNull(reviewId, authService.currentAuth.id)
             ?: throw ReviewNotFoundException()
@@ -58,9 +61,9 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
         reviewRepo.getAllBySubject(subject.id, mark, authService.currentAuthOrNull?.id, pageRequest)
 
     @Transactional(readOnly = true)
-    override fun getBySubjectAndAuthenticatedAuthor(subject: Reference): OwnReview {
+    override fun getOwnBySubject(subject: Reference): Review {
         authService.currentAuth.requireAnyRole(REVIEWER)
-        return reviewRepo.getBySubjectAndAuthorOrNull(subject.id, authService.currentAuth.id)
+        return reviewRepo.getOwnBySubjectOrNull(subject.id, authService.currentAuth.id)
             ?: throw ReviewNotFoundException()
     }
 }

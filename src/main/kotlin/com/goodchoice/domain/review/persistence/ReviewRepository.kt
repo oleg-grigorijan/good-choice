@@ -29,10 +29,10 @@ interface ReviewRepository {
     ): Reference
 
     fun vote(reviewId: UUID, issuerId: UUID, voteType: VoteType)
-    fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotesWithOwn?
+    fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotes?
     fun removeVote(reviewId: UUID, reviewerId: UUID)
     fun getAllBySubject(subjectId: UUID, mark: Mark?, reviewerId: UUID?, pageRequest: PageRequest): Page<Review>
-    fun getBySubjectAndAuthorOrNull(subjectId: UUID, authorId: UUID?): OwnReview?
+    fun getOwnBySubjectOrNull(subjectId: UUID, authorId: UUID?): Review?
 }
 
 class ReviewJooqRepository(
@@ -95,10 +95,10 @@ class ReviewJooqRepository(
             .execute()
     }
 
-    override fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotesWithOwn? {
+    override fun getVotesByReviewIdOrNull(reviewId: UUID, reviewerId: UUID): ReviewVotes? {
         return db.selectFrom(GET_REVIEW_VOTES_BY_ACTOR(reviewerId))
             .where(GET_REVIEW_VOTES_BY_ACTOR.REVIEW_ID.eq(reviewId)).fetchOne()?.map {
-                ReviewVotesWithOwn(
+                ReviewVotes(
                     it[GET_REVIEW_VOTES_BY_ACTOR.UPVOTES_COUNT],
                     it[GET_REVIEW_VOTES_BY_ACTOR.DOWNVOTES_COUNT],
                     it[GET_REVIEW_VOTES_BY_ACTOR.OWN_VOTE]?.let {
@@ -152,7 +152,7 @@ class ReviewJooqRepository(
                     advantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ADVANTAGES]),
                     disadvantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
                     bodies = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.BODIES]),
-                    votes = ReviewVotesWithOwn(
+                    votes = ReviewVotes(
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.UPVOTES_COUNT],
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DOWNVOTES_COUNT],
                         it[GET_REVIEW_FULL_VIEW_BY_ACTOR.OWN_VOTE]?.let {
@@ -171,29 +171,35 @@ class ReviewJooqRepository(
         return Page(offset, items, hasNext)
     }
 
-    override fun getBySubjectAndAuthorOrNull(subjectId: UUID, authorId: UUID?): OwnReview? {
-        return db.selectFrom(REVIEW_FULL_VIEW)
-            .where(REVIEW_FULL_VIEW.SUBJECT_ID.eq(subjectId).and(REVIEW_FULL_VIEW.AUTHOR_ID.eq(authorId)))
+    override fun getOwnBySubjectOrNull(subjectId: UUID, authorId: UUID?): Review? {
+        return db.selectFrom(GET_REVIEW_FULL_VIEW_BY_ACTOR(authorId))
+            .where(
+                GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID.eq(subjectId)
+                    .and(GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID.eq(authorId))
+            )
             .fetchOne()
             ?.map {
-                OwnReview(
-                    id = it[REVIEW_FULL_VIEW.ID],
-                    title = it[REVIEW_FULL_VIEW.TITLE],
-                    subject = Reference(it[REVIEW_FULL_VIEW.SUBJECT_ID]),
+                Review(
+                    id = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ID],
+                    title = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.TITLE],
+                    subject = Reference(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID]),
                     author = UserPreview(
-                        it[REVIEW_FULL_VIEW.AUTHOR_ID],
-                        it[REVIEW_FULL_VIEW.AUTHOR_FIRST_NAME],
-                        it[REVIEW_FULL_VIEW.AUTHOR_LAST_NAME]
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_FIRST_NAME],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_LAST_NAME]
                     ),
-                    mark = Mark(it[REVIEW_FULL_VIEW.MARK]),
-                    advantages = objectMapper.read(it[REVIEW_FULL_VIEW.ADVANTAGES]),
-                    disadvantages = objectMapper.read(it[REVIEW_FULL_VIEW.DISADVANTAGES]),
-                    bodies = objectMapper.read(it[REVIEW_FULL_VIEW.BODIES]),
+                    mark = Mark(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK]),
+                    advantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ADVANTAGES]),
+                    disadvantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
+                    bodies = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.BODIES]),
                     votes = ReviewVotes(
-                        it[REVIEW_FULL_VIEW.UPVOTES_COUNT],
-                        it[REVIEW_FULL_VIEW.DOWNVOTES_COUNT]
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.UPVOTES_COUNT],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DOWNVOTES_COUNT],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.OWN_VOTE]?.let {
+                            Vote(it.asVoteType())
+                        }
                     ),
-                    images = objectMapper.read(it[REVIEW_FULL_VIEW.IMAGES])
+                    images = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.IMAGES])
                 )
             }
     }

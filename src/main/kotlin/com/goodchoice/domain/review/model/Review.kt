@@ -15,6 +15,6 @@ data class Review(
     val advantages: List<String>,
     val disadvantages: List<String>,
     val bodies: List<ReviewBody>,
-    val votes: ReviewVotesWithOwn,
+    val votes: ReviewVotes,
     val images: List<ImageDescriptor>
 )

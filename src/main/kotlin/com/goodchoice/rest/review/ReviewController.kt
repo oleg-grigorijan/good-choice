@@ -3,7 +3,10 @@ package com.goodchoice.rest.review
 import com.goodchoice.domain.common.model.Page
 import com.goodchoice.domain.common.model.PageRequest
 import com.goodchoice.domain.common.model.Reference
-import com.goodchoice.domain.review.model.*
+import com.goodchoice.domain.review.model.Review
+import com.goodchoice.domain.review.model.ReviewCreationRequest
+import com.goodchoice.domain.review.model.ReviewVotes
+import com.goodchoice.domain.review.model.Vote
 import com.goodchoice.domain.review.service.ReviewService
 import com.goodchoice.domain.subject.model.Mark
 import com.goodchoice.infra.swagger.RequireSecurity
@@ -21,14 +24,14 @@ class ReviewController(private val reviewService: ReviewService) {
     @ResponseStatus(HttpStatus.OK)
     @RequireSecurity
     @Operation(summary = "Vote by authenticated user")
-    fun voteByAuthenticatedUser(@PathVariable id: UUID, @RequestBody request: Vote): ReviewVotesWithOwn =
+    fun voteByAuthenticatedUser(@PathVariable id: UUID, @RequestBody request: Vote): ReviewVotes =
         reviewService.voteByAuthenticatedUser(id, request)
 
     @DeleteMapping("/reviews/{id}/votes/own")
     @ResponseStatus(HttpStatus.OK)
     @RequireSecurity
     @Operation(summary = "Remove vote of authenticated user")
-    fun removeAuthenticatedUserVote(@PathVariable id: UUID): ReviewVotesWithOwn =
+    fun removeAuthenticatedUserVote(@PathVariable id: UUID): ReviewVotes =
         reviewService.removeAuthenticatedUserVote(id)
 
     @PostMapping("/reviews")
@@ -61,6 +64,6 @@ class ReviewController(private val reviewService: ReviewService) {
     @Operation(summary = "Get review by subject and authenticated author")
     fun getBySubjectAndAuthenticatedAuthor(
         @PathVariable id: UUID
-    ): OwnReview =
-        reviewService.getBySubjectAndAuthenticatedAuthor(subject = Reference(id))
+    ): Review =
+        reviewService.getOwnBySubject(subject = Reference(id))
 }
