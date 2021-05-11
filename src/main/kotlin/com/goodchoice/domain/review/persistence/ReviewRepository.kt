@@ -38,6 +38,7 @@ interface ReviewRepository {
         filterNotOwn: Boolean,
         pageRequest: PageRequest
     ): Page<Review>
+    fun getOwnBySubjectOrNull(subjectId: UUID, authorId: UUID?): Review?
 }
 
 class ReviewJooqRepository(
@@ -182,5 +183,38 @@ class ReviewJooqRepository(
             hasNext = true
         }
         return Page(offset, items, hasNext)
+    }
+
+    override fun getOwnBySubjectOrNull(subjectId: UUID, authorId: UUID?): Review? {
+        return db.selectFrom(GET_REVIEW_FULL_VIEW_BY_ACTOR(authorId))
+            .where(
+                GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID.eq(subjectId)
+                    .and(GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID.eq(authorId))
+            )
+            .fetchOne()
+            ?.map {
+                Review(
+                    id = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ID],
+                    title = it[GET_REVIEW_FULL_VIEW_BY_ACTOR.TITLE],
+                    subject = Reference(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.SUBJECT_ID]),
+                    author = UserPreview(
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_FIRST_NAME],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_LAST_NAME]
+                    ),
+                    mark = Mark(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.MARK]),
+                    advantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.ADVANTAGES]),
+                    disadvantages = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DISADVANTAGES]),
+                    bodies = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.BODIES]),
+                    votes = ReviewVotes(
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.UPVOTES_COUNT],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.DOWNVOTES_COUNT],
+                        it[GET_REVIEW_FULL_VIEW_BY_ACTOR.OWN_VOTE]?.let {
+                            Vote(it.asVoteType())
+                        }
+                    ),
+                    images = objectMapper.read(it[GET_REVIEW_FULL_VIEW_BY_ACTOR.IMAGES])
+                )
+            }
     }
 }

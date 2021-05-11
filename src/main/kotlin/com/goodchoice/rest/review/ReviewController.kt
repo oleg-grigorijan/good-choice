@@ -55,4 +55,11 @@ class ReviewController(private val reviewService: ReviewService) {
             pageRequest = PageRequest(offset = offset, limit = limit)
         )
 
+    @GetMapping("/subjects/{id}/reviews/own")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get review by subject and authenticated author")
+    fun getBySubjectAndAuthenticatedAuthor(
+        @PathVariable id: UUID
+    ): Review =
+        reviewService.getOwnBySubject(subject = Reference(id))
 }

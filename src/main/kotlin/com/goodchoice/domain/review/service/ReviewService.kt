@@ -17,6 +17,7 @@ interface ReviewService {
     fun voteByAuthenticatedUser(reviewId: UUID, request: Vote): ReviewVotes
     fun removeAuthenticatedUserVote(reviewId: UUID): ReviewVotes
     fun getAllBySubject(reviewBySubjectQuery: ReviewBySubjectQuery, pageRequest: PageRequest): Page<Review>
+    fun getOwnBySubject(subject: Reference): Review
 }
 
 class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val authService: AuthService) :
@@ -60,4 +61,11 @@ class ReviewServiceImpl(private val reviewRepo: ReviewRepository, private val au
             reviewBySubjectQuery.filterNotOwn,
             pageRequest
         )
+
+    @Transactional(readOnly = true)
+    override fun getOwnBySubject(subject: Reference): Review {
+        authService.currentAuth.requireAnyRole(REVIEWER)
+        return reviewRepo.getOwnBySubjectOrNull(subject.id, authService.currentAuth.id)
+            ?: throw ReviewNotFoundException()
+    }
 }
