@@ -1,6 +1,7 @@
 package com.goodchoice.domain.review.model
 
 import com.goodchoice.domain.common.model.Reference
+import com.goodchoice.domain.image.model.ImageDescriptor
 import com.goodchoice.domain.subject.model.Mark
 import com.goodchoice.domain.user.model.UserPreview
 import java.util.*
@@ -14,5 +15,6 @@ data class Review(
     val advantages: List<String>,
     val disadvantages: List<String>,
     val bodies: List<ReviewBody>,
-    val votes: ReviewVotes
+    val votes: ReviewVotes,
+    val images: List<ImageDescriptor>
 )

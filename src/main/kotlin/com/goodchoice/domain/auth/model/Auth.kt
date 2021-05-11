@@ -14,6 +14,9 @@ interface Auth {
     val role: UserRole
 }
 
-fun Auth.requireRole(expectedRole: UserRole) {
-    if (expectedRole != this.role) throw UserRoleRequiredException(actual = this.role, expected = expectedRole)
+fun Auth.requireAnyRole(vararg expectedRoles: UserRole) {
+    if (!expectedRoles.contains(this.role)) throw UserRoleRequiredException(
+        actual = this.role,
+        expected = expectedRoles
+    )
 }

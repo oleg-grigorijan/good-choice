@@ -9,7 +9,9 @@ data class SubjectModificationRequest(
     val description: String,
     val brand: Reference,
     val addedTags: List<Reference>,
-    val removedTags: List<Reference>
+    val removedTags: List<Reference>,
+    val images: List<Reference>,
+    val primaryImage: Reference?
 ) {
     init {
         validateSingleLineString(name, StringMaxLength.MEDIUM)

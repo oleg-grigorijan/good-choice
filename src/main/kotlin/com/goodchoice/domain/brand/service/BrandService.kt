@@ -1,7 +1,7 @@
 package com.goodchoice.domain.brand.service
 
 import com.goodchoice.domain.auth.model.UserRole
-import com.goodchoice.domain.auth.model.requireRole
+import com.goodchoice.domain.auth.model.requireAnyRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.brand.BrandNotFoundException
 import com.goodchoice.domain.brand.model.Brand
@@ -28,7 +28,7 @@ class BrandServiceImpl(
 
     @Transactional
     override fun create(request: BrandModificationRequest): Reference {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        authService.currentAuth.requireAnyRole(UserRole.ADMINISTRATOR)
         return brandRepo.create(
             name = request.name,
             description = request.description
@@ -42,7 +42,7 @@ class BrandServiceImpl(
 
     @Transactional
     override fun update(id: UUID, request: BrandModificationRequest) {
-        authService.currentAuth.requireRole(UserRole.ADMINISTRATOR)
+        authService.currentAuth.requireAnyRole(UserRole.ADMINISTRATOR)
         return brandRepo.update(
             id = id,
             name = request.name,

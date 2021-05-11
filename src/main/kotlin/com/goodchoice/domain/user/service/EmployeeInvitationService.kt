@@ -2,7 +2,7 @@ package com.goodchoice.domain.user.service
 
 import com.goodchoice.EMPLOYEE_INVITATION_TIME_TO_LIVE
 import com.goodchoice.domain.auth.model.UserRole.HR
-import com.goodchoice.domain.auth.model.requireRole
+import com.goodchoice.domain.auth.model.requireAnyRole
 import com.goodchoice.domain.auth.service.AuthService
 import com.goodchoice.domain.common.forbid
 import com.goodchoice.domain.common.generateToken
@@ -39,7 +39,7 @@ class EmployeeInvitationServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getAll(): List<EmployeeInvitation> {
-        authService.currentAuth.requireRole(HR)
+        authService.currentAuth.requireAnyRole(HR)
         return invitationRepo.getAll()
     }
 
@@ -52,7 +52,7 @@ class EmployeeInvitationServiceImpl(
 
     @Transactional
     override fun invite(request: EmployeeInvitationRequest): EmployeeInvitation {
-        authService.currentAuth.requireRole(HR)
+        authService.currentAuth.requireAnyRole(HR)
         forbid(authService.existsByEmail(request.email)) { UserExistsByEmailException(request.email) }
 
         val token = generateToken()
@@ -71,7 +71,7 @@ class EmployeeInvitationServiceImpl(
 
     @Transactional
     override fun refresh(id: UUID): EmployeeInvitation {
-        authService.currentAuth.requireRole(HR)
+        authService.currentAuth.requireAnyRole(HR)
 
         val token = generateToken()
         val invitation = invitationRepo.refresh(
@@ -86,7 +86,7 @@ class EmployeeInvitationServiceImpl(
 
     @Transactional
     override fun revoke(id: UUID) {
-        authService.currentAuth.requireRole(HR)
+        authService.currentAuth.requireAnyRole(HR)
         invitationRepo.remove(id)
     }
 
