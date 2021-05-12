@@ -61,6 +61,11 @@ class SubjectJooqRepository(
     ): Reference {
         val id = UUID.randomUUID()
 
+
+        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID)
+            .apply { images.forEach { values(id, it.id) } }
+            .execute()
+
         db.insertInto(SUBJECT)
             .set(SUBJECT.ID, id)
             .set(SUBJECT.NAME, name)
@@ -69,10 +74,6 @@ class SubjectJooqRepository(
             .set(SUBJECT.IS_SHOWN, true)
             .set(SUBJECT.CREATED_TIMESTAMP, clock.now())
             .set(SUBJECT.PRIMARY_IMAGE_ID, primaryImage?.id)
-            .execute()
-
-        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID)
-            .apply { images.forEach { values(id, it.id) } }
             .execute()
 
         db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
