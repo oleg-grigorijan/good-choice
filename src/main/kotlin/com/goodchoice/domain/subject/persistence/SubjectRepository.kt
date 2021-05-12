@@ -61,9 +61,9 @@ class SubjectJooqRepository(
     ): Reference {
         val id = UUID.randomUUID()
 
-
-        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID)
-            .apply { images.forEach { values(id, it.id) } }
+        var ordering = 0
+        db.insertInto(SUBJECT_IMAGE, SUBJECT_IMAGE.SUBJECT_ID, SUBJECT_IMAGE.IMAGE_ID, SUBJECT_IMAGE.ORDERING)
+            .apply { images.forEach { values(id, it.id, ordering++) } }
             .execute()
 
         db.insertInto(SUBJECT)
