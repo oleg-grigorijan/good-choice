@@ -25,7 +25,9 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
     @Bean
     fun corsConfigurer(externalServicesProps: ExternalServicesProperties) = object : WebMvcConfigurer {
         override fun addCorsMappings(registry: CorsRegistry) {
-            registry.addMapping("/**").allowedOrigins(externalServicesProps.webFrontend)
+            registry.addMapping("/**")
+                .allowedOrigins(externalServicesProps.webFrontend)
+                .allowedMethods("*")
         }
     }
 
