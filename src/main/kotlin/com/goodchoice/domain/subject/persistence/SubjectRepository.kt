@@ -76,10 +76,12 @@ class SubjectJooqRepository(
             .apply { images.forEach { values(id, it.id, ordering++) } }
             .execute()
 
-        db.update(SUBJECT)
-            .set(SUBJECT.PRIMARY_IMAGE_ID, primaryImage?.id)
-            .where(SUBJECT.ID.eq(id))
-            .execute()
+        if (primaryImage != null) {
+            db.update(SUBJECT)
+                .set(SUBJECT.PRIMARY_IMAGE_ID, primaryImage.id)
+                .where(SUBJECT.ID.eq(id))
+                .execute()
+        }
 
         db.insertInto(SUBJECT_TO_TAG, SUBJECT_TO_TAG.SUBJECT_ID, SUBJECT_TO_TAG.TAG_ID)
             .apply { tags.forEach { values(id, it.id) } }
