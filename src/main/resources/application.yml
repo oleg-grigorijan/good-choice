@@ -31,7 +31,6 @@ springdoc:
     path: '/'
     display-request-duration: true
     operationsSorter: 'alpha'
-  show-login-endpoint: true
 
 server.port: ${PORT:443}
 

@@ -8,8 +8,8 @@ interface UserSelfService {
     fun login(userLoginRequest: UserLoginRequest): LoginResponse
 }
 
-class UserSelfServiceImpl(private val authService: AuthService) :
-    UserSelfService {
+class UserSelfServiceImpl(private val authService: AuthService) : UserSelfService {
+
     override fun login(userLoginRequest: UserLoginRequest): LoginResponse =
         LoginResponse(authService.getByCredentials(userLoginRequest.email, userLoginRequest.password).role)
 }
