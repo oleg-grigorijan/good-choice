@@ -3,7 +3,7 @@ package com.goodchoice.domain.user.model
 import com.goodchoice.domain.auth.model.UserRole
 import com.goodchoice.domain.common.UnexpectedUserRoleException
 import com.goodchoice.domain.common.model.Email
-import com.goodchoice.domain.common.model.NewPassword
+import com.goodchoice.domain.common.model.RawPassword
 import com.goodchoice.domain.common.verify
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -20,7 +20,7 @@ data class EmployeeCreationBootstrapProperties(
         val email: Email,
         val firstName: String,
         val lastName: String,
-        val password: NewPassword,
+        val password: RawPassword,
     ) {
         init {
             verify(role.isEmployee()) { UnexpectedUserRoleException() }

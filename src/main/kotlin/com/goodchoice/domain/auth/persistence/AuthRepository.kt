@@ -1,5 +1,6 @@
 package com.goodchoice.domain.auth.persistence
 
+import com.goodchoice.domain.auth.model.Auth
 import com.goodchoice.domain.auth.model.AuthWithCredentials
 import com.goodchoice.domain.auth.model.toUserRole
 import com.goodchoice.domain.common.jooq.Tables.ACTOR
@@ -12,6 +13,7 @@ interface AuthRepository {
     fun existsByEmail(email: Email): Boolean
     fun getCredentialsByEmailOrNull(email: Email): AuthWithCredentials?
     fun updateEmailByUser(userId: UUID, email: Email)
+    fun getByCredentialsOrNull(email: Email, password: String): Auth?
 }
 
 class JooqAuthRepository(private val db: DSLContext) : AuthRepository {
@@ -35,5 +37,9 @@ class JooqAuthRepository(private val db: DSLContext) : AuthRepository {
             .set(ACTOR.EMAIL, email.address)
             .where(ACTOR.ID.eq(userId))
             .execute()
+    }
+
+    override fun getByCredentialsOrNull(email: Email, password: String): Auth? {
+        TODO("Not yet implemented")
     }
 }

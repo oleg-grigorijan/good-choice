@@ -2,8 +2,7 @@ package com.goodchoice.domain.user
 
 import com.goodchoice.domain.common.ApplicationException
 import com.goodchoice.domain.common.model.Email
-import org.springframework.http.HttpStatus.CONFLICT
-import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.*
 import org.springframework.web.bind.annotation.ResponseStatus
 
 abstract class UserException(
@@ -14,6 +13,8 @@ abstract class UserException(
 @ResponseStatus(CONFLICT)
 class UserExistsByEmailException(val email: Email) : UserException()
 
+@ResponseStatus(UNAUTHORIZED)
+class UserIncorrectCredentialsException() : UserException()
 
 abstract class EmployeeException(
     message: String? = null,

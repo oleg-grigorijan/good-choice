@@ -5,7 +5,7 @@ import com.goodchoice.domain.auth.model.Auth
 import com.goodchoice.domain.auth.model.AuthWithCredentials
 import com.goodchoice.domain.auth.persistence.AuthRepository
 import com.goodchoice.domain.common.model.Email
-import com.goodchoice.domain.common.model.NewPassword
+import com.goodchoice.domain.common.model.RawPassword
 import com.goodchoice.domain.common.model.encode
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -23,8 +23,9 @@ interface AuthService : AuthContext {
 
     fun existsByEmail(email: Email): Boolean
     fun getCredentialsByEmailOrNull(email: Email): AuthWithCredentials?
+    fun getByCredentialsOrNull(email: Email, password: String): Auth?
     fun assignEmail(userId: UUID, email: Email)
-    fun generatePasswordHash(password: NewPassword): String
+    fun generatePasswordHash(password: RawPassword): String
 }
 
 class AuthServiceImpl(
@@ -44,10 +45,15 @@ class AuthServiceImpl(
         authRepo.getCredentialsByEmailOrNull(email)
 
     @Transactional
+    override fun getByCredentialsOrNull(email: Email, password: String): Auth? {
+        return authRepo.getByCredentialsOrNull(email, password)
+    }
+
+    @Transactional
     override fun assignEmail(userId: UUID, email: Email) {
         authRepo.updateEmailByUser(userId, email)
     }
 
-    override fun generatePasswordHash(password: NewPassword): String =
+    override fun generatePasswordHash(password: RawPassword): String =
         passwordEncoder.encode(password)
 }

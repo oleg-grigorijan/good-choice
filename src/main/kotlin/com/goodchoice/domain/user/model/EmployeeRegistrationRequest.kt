@@ -1,14 +1,14 @@
 package com.goodchoice.domain.user.model
 
 import com.goodchoice.StringMaxLength.MEDIUM
-import com.goodchoice.domain.common.model.NewPassword
+import com.goodchoice.domain.common.model.RawPassword
 import com.goodchoice.domain.common.validateSingleLineString
 
 data class EmployeeRegistrationRequest(
     val invitationToken: String,
     val firstName: String,
     val lastName: String,
-    val password: NewPassword,
+    val password: RawPassword,
 ) {
 
     init {
