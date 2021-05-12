@@ -1,6 +1,7 @@
 package com.goodchoice.domain.auth.service
 
 import com.goodchoice.domain.auth.AuthenticationRequiredException
+import com.goodchoice.domain.auth.InvalidCredentialsException
 import com.goodchoice.domain.auth.model.Auth
 import com.goodchoice.domain.auth.model.AuthWithCredentials
 import com.goodchoice.domain.auth.persistence.AuthRepository
@@ -23,7 +24,8 @@ interface AuthService : AuthContext {
 
     fun existsByEmail(email: Email): Boolean
     fun getCredentialsByEmailOrNull(email: Email): AuthWithCredentials?
-    fun getByCredentialsOrNull(email: Email, password: String): Auth?
+    fun getByCredentialsOrNull(email: Email, password: RawPassword): Auth?
+    fun getByCredentials(email: Email, password: RawPassword): Auth
     fun assignEmail(userId: UUID, email: Email)
     fun generatePasswordHash(password: RawPassword): String
 }
@@ -44,10 +46,25 @@ class AuthServiceImpl(
     override fun getCredentialsByEmailOrNull(email: Email): AuthWithCredentials? =
         authRepo.getCredentialsByEmailOrNull(email)
 
-    @Transactional
-    override fun getByCredentialsOrNull(email: Email, password: String): Auth? {
-        return authRepo.getByCredentialsOrNull(email, password)
-    }
+    @Transactional(readOnly = true)
+    override fun getByCredentialsOrNull(email: Email, password: RawPassword): Auth? =
+        authRepo.getCredentialsByEmailOrNull(email)?.let {
+            if (passwordEncoder.matches(password.value, it.passwordHash)) {
+                it
+            } else {
+                null
+            }
+        }
+
+    @Transactional(readOnly = true)
+    override fun getByCredentials(email: Email, password: RawPassword): Auth =
+        authRepo.getCredentialsByEmailOrNull(email)?.let {
+            if (passwordEncoder.matches(password.value, it.passwordHash)) {
+                it
+            } else {
+                null
+            }
+        } ?: throw InvalidCredentialsException()
 
     @Transactional
     override fun assignEmail(userId: UUID, email: Email) {
