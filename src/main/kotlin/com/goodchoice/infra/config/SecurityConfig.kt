@@ -67,15 +67,6 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                     response.status = UNAUTHORIZED.value()
                 }
             }
-//            formLogin {
-//                loginProcessingUrl = "/login"
-//                authenticationSuccessHandler = AuthenticationSuccessHandler { _, response, _ ->
-//                    response.status = NO_CONTENT.value()
-//                }
-//                authenticationFailureHandler = AuthenticationFailureHandler { _, response, _ ->
-//                    response.status = UNAUTHORIZED.value()
-//                }
-//            }
             sessionManagement {
                 sessionCreationPolicy = STATELESS
             }
