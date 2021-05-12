@@ -56,6 +56,7 @@ class ReviewController(private val reviewService: ReviewService) {
         )
 
     @GetMapping("/subjects/{id}/reviews/own")
+    @RequireSecurity
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get review by subject and authenticated author")
     fun getBySubjectAndAuthenticatedAuthor(

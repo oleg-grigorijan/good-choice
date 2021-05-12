@@ -38,6 +38,7 @@ interface ReviewRepository {
         filterNotOwn: Boolean,
         pageRequest: PageRequest
     ): Page<Review>
+
     fun getOwnBySubjectOrNull(subjectId: UUID, authorId: UUID?): Review?
 }
 
@@ -77,15 +78,26 @@ class ReviewJooqRepository(
             .set(REVIEW_BODY.REVIEW_ID, reviewId)
             .execute()
 
-        var ordering = 0
+        var pointsOrdering = 0
         db.insertInto(
             REVIEW_POINT,
             REVIEW_POINT.CONTENT,
             REVIEW_POINT.ORDERING,
             REVIEW_POINT.REVIEW_ID,
             REVIEW_POINT.TYPE
-        ).apply { advantages.forEach { values(it, ordering++, reviewId, ADVANTAGE) } }
-            .apply { disadvantages.forEach { values(it, ordering++, reviewId, DISADVANTAGE) } }
+        )
+            .apply { advantages.forEach { values(it, pointsOrdering++, reviewId, ADVANTAGE) } }
+            .apply { disadvantages.forEach { values(it, pointsOrdering++, reviewId, DISADVANTAGE) } }
+            .execute()
+
+        var imageOrdering = 0;
+        db.insertInto(
+            REVIEW_IMAGE,
+            REVIEW_IMAGE.REVIEW_ID,
+            REVIEW_IMAGE.IMAGE_ID,
+            REVIEW_IMAGE.ORDERING
+        )
+            .apply { images.forEach { values(reviewId, it.id, imageOrdering++) } }
             .execute()
 
         return Reference(reviewId)
