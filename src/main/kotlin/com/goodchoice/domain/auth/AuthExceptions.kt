@@ -12,6 +12,7 @@ abstract class AuthenticationException(
 ) : ApplicationException(message, cause)
 
 class AuthenticationRequiredException : AuthenticationException()
+class InvalidCredentialsException : AuthenticationException()
 
 
 @ResponseStatus(HttpStatus.FORBIDDEN)

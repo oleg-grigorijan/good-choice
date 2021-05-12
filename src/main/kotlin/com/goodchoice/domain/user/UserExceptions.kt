@@ -14,7 +14,6 @@ abstract class UserException(
 @ResponseStatus(CONFLICT)
 class UserExistsByEmailException(val email: Email) : UserException()
 
-
 abstract class EmployeeException(
     message: String? = null,
     cause: Throwable? = null,

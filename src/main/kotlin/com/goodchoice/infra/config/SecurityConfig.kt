@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod.GET
 import org.springframework.http.HttpMethod.POST
-import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -16,8 +15,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy.STATELESS
 import org.springframework.security.config.web.servlet.invoke
 import org.springframework.security.web.AuthenticationEntryPoint
-import org.springframework.security.web.authentication.AuthenticationFailureHandler
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
@@ -72,15 +69,6 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
                     response.status = UNAUTHORIZED.value()
                 }
             }
-            formLogin {
-                loginProcessingUrl = "/login"
-                authenticationSuccessHandler = AuthenticationSuccessHandler { _, response, _ ->
-                    response.status = NO_CONTENT.value()
-                }
-                authenticationFailureHandler = AuthenticationFailureHandler { _, response, _ ->
-                    response.status = UNAUTHORIZED.value()
-                }
-            }
             sessionManagement {
                 sessionCreationPolicy = STATELESS
             }
@@ -89,5 +77,7 @@ class SecurityConfig(private val authService: AuthService) : WebSecurityConfigur
             }
             cors {}
         }
+
+        http.formLogin().disable()
     }
 }

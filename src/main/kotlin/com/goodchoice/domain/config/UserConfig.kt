@@ -25,6 +25,11 @@ class UserConfig {
         UserEmailConfirmationServiceImpl(authService)
 
     @Bean
+    fun userSelfService(authService: AuthService): UserSelfService =
+        UserSelfServiceImpl(authService)
+
+
+    @Bean
     fun reviewerSelfService(
         reviewerRepo: ReviewerRepository,
         authService: AuthService,
