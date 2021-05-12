@@ -1,15 +1,15 @@
 package com.goodchoice.domain.user.service
 
 import com.goodchoice.domain.auth.service.AuthService
+import com.goodchoice.domain.user.model.LoginResponse
 import com.goodchoice.domain.user.model.UserLoginRequest
-import com.goodchoice.domain.user.model.UserRole
 
 interface UserSelfService {
-    fun login(userLoginRequest: UserLoginRequest): UserRole
+    fun login(userLoginRequest: UserLoginRequest): LoginResponse
 }
 
 class UserSelfServiceImpl(private val authService: AuthService) :
     UserSelfService {
-    override fun login(userLoginRequest: UserLoginRequest): UserRole =
-        authService.getByCredentials(userLoginRequest.email, userLoginRequest.password).let { UserRole(it.role) }
+    override fun login(userLoginRequest: UserLoginRequest): LoginResponse =
+        LoginResponse(authService.getByCredentials(userLoginRequest.email, userLoginRequest.password).role)
 }

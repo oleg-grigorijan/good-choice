@@ -2,14 +2,14 @@ package com.goodchoice.domain.user.model
 
 import com.goodchoice.StringMaxLength.MEDIUM
 import com.goodchoice.domain.common.model.Email
-import com.goodchoice.domain.common.model.RawPassword
+import com.goodchoice.domain.common.model.NewPassword
 import com.goodchoice.domain.common.validateSingleLineString
 
 class ReviewerRegistrationRequest(
     val firstName: String,
     val lastName: String,
     val email: Email,
-    val password: RawPassword
+    val password: NewPassword
 ) {
 
     init {
