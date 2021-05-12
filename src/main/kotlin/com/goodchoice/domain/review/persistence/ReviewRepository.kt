@@ -142,7 +142,7 @@ class ReviewJooqRepository(
                         }
                     }
                     .let { condition ->
-                        if (filterNotOwn) {
+                        if (filterNotOwn && reviewerId != null) {
                             condition.and(GET_REVIEW_FULL_VIEW_BY_ACTOR.AUTHOR_ID.ne(reviewerId))
                         } else {
                             condition
