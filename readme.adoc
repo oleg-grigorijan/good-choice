@@ -10,7 +10,7 @@ docker create `
   -e POSTGRES_PASSWORD=postgres-pass `
   -e POSTGRES_INITDB_ARGS="--encoding=UTF8" `
   -p 5432:5432 `
-  -v $pwd/local/initdb:/docker-entrypoint-initdb.d `
+  -v $(pwd)/local/initdb:/docker-entrypoint-initdb.d `
   bitnami/postgresql:13.2.0-debian-10-r45
 ----
 
